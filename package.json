@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "converter.js",
   "scripts": {
+    "build": "browserify converter.js -o ultraconverter.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
