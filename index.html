@@ -1,0 +1,147 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>BTE Schematic Converter</title>
+  <link rel="icon" href="icon.ico" type="image/x-icon">
+  <script src="ultraconverter.js"></script>
+
+  <style>
+    body {
+      background-color: #2c2c2c;
+      color: #f5f5f5;
+      font-family: sans-serif;
+    }
+    button {
+      background-color: #3a3a3a;
+      font-size: 14px;
+      color: #f0f0f0;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      margin-top: 10px;
+      width: 260px;
+      height: 40px;
+      cursor: pointer;
+    }
+    input {
+      background-color: #2a2a2a;
+      color: #f0f0f0;
+      border: 1px solid #555;
+      padding: 6px;
+      border-radius: 4px;
+      margin-top: 5px;
+    }
+    .title {
+      font-size: 28px;
+      font-weight: bold;
+      color: lightcyan; /* или другой цвет, подходящий под фон */
+      text-shadow: 0 0 5px #002548, 0 0 10px #002548, 0 0 15px #002548;
+    }
+    .logo {
+      height: 100%;
+      max-width: 150px;
+    }
+    
+  </style>
+</head>
+
+<body>
+  <div class="title">BTE Schematic Converter</div>
+
+  <div style="margin-top: 25px; margin-bottom: 15px;">Convert your geodata files to BuildTheEarth-ready schematic files!
+    <br>KML and Geojson formats are supported.</div>
+
+  <div style="text-align: left">
+    <input id="file" type="file" accept=".kml,.geojson,.json" onchange="upload(this)" multiple/><br/>
+  </div>
+  <div id="status" style="margin-top: 20px; margin-bottom: 10px; text-align: left; font-weight: bold;">
+    Импортируйте файл
+  </div>
+  <div id="originpoint" 
+  style="margin-top: 5px; margin-bottom: 5px; font-weight: bold; font-size: small; color: mediumseagreen"></div>
+  <ul id="downloads"></ul>
+  <hr>
+  <div style="margin-bottom: 10px; margin-top: 20px;">
+    <label for="blockId">ID блока, из которого будут сделаны контуры:</label>
+    <input id="blockId" type="text" value="diamond_block"/>
+  </div>
+  <div style="margin-bottom: 10px;">
+    <label for="exportFileName">Имя экспортируемого файла:</label>
+    <label>
+      <input type="text" id="exportFileName" value="converted"/>.schem
+    </label>
+  </div>
+  <div>
+    <label>
+      <input type="checkbox" id="doConnections" checked="true">
+      Соединить точки
+    </label>
+  </div>
+  <hr>
+  <input type="file" id="fileInput" accept=".kml,.geojson" style="display: none;" />
+  <div style="margin-top: 20px; font-size: 14px;">Privacy notice: all files are processed by your local machine and aren't uploaded to any server.</div>
+
+
+  <script>
+    // ЛОГИКА САЙТА
+    const fileInput = document.getElementById('fileInput');
+    const statusText = document.getElementById('status');
+    const originPointText = document.getElementById('originpoint');
+
+    function uploadFile(file) {
+      console.log('Processing ' + file.name)
+      var fr = new FileReader();
+      fr.onload = function() {
+        var name = file.name.toLowerCase();
+        let fileType;
+        if (name.endsWith('.kml')) {
+          fileType = 'kml'
+        } else if (name.endsWith('.geojson') || name.endsWith('.json')) {
+          fileType = 'geojson'
+        } else {
+          statusUpdate('Файл не поддерживается', 'salmon')
+          alert('Поддерживаются только файлы с расширением .kml и .geojson')
+        }
+        statusUpdate('Идет конвертация...', 'wheat')
+
+        const result = convertGeoData(fr.result, fileType, 'diamond_block', true)
+
+        if (~name.lastIndexOf('.')) {
+            name = name.substr(0, name.lastIndexOf('.'));
+        }
+    
+        name += '.schem';
+    
+        var blob = new Blob([result[0]], {type: 'application/nbt'});
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = name;
+        link.innerHTML = 'Download ' + name;
+        link.click();
+        var li = document.createElement('li');
+        li.appendChild(link);
+        li.appendChild(document.createTextNode(` (${result[1]})`)) // result[1] - это originalPoint
+        document.querySelector('#downloads').appendChild(li);
+
+        statusUpdate('Файл успешно сконвертирован!', 'MediumSeaGreen')
+        originPointText.textContent = 'Для вставки схемы на сервере используйте «//paste -a -o». '+
+                                    'Если вы используете Litematica, вставьте схему по координатам ниже.'
+      }
+      fr.readAsText(file);
+    }
+
+    function upload(input) {
+      for (var i = 0; i < input.files.length; i++) {
+        uploadFile(input.files[i]);
+      }
+    }
+  
+    function statusUpdate(text, color) {
+      statusText.textContent = text;
+      statusText.style.color = color
+    }
+  </script>
+</body>
+</html>
