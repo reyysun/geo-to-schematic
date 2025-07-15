@@ -6,7 +6,7 @@
 * Сайт поддерживает файлы географических данных с расширениями ".kml" и ".geojson";
 * Выходной файл - схематик с расширением ".schem" (Sponge schematic);
 * Конвертер должен понимать большинство kml и geojson файлов, генерируемых другими программами, в частности Google Earth Pro и QGis;
-* Поддерживаются только геометрические объекты вида LineString (линия) и Polygon (полигон). Также также поддерживается объект-контейнер MultiGeometry с вложенными в него линиями и полигонами. Другие объекты, такие как MultiPolygon, будут игнорироваться;
+* Поддерживаются только геометрические объекты вида LineString (линия) и Polygon (полигон). Также поддерживается объект-контейнер MultiGeometry с вложенными в него линиями и полигонами. Другие объекты, такие как MultiPolygon, будут игнорироваться;
 * Координаты могут быть как с параметром высоты, так и без него. Если высоты заданы, то конвертер расположит объекты на соответствующей им высоте в схематике. Если же высот нет, то линии будут на высоте 0.
 ## About
 * The site supports geographic data files with the extensions ".kml" and ".geojson";
@@ -20,6 +20,10 @@
 ## How to build
 This project uses [Browserify](https://browserify.org/) to convert `converter.js` into a browser-ready `ultraconverter.js`, which is used by `index.html`. You can look up for ultraconverter in gh-pages branch, but it's 38k lines long, so there's no need to edit that file manually — instead, make changes in `converter.js`, then bundle it using Browserify. Here's how:
 1. Clone the main repository
+```
+git clone https://github.com/reyysun/bte-schematic-convertrer
+cd bte-schematic-convertrer
+```
 2. Install dependencies
 ```
 npm install
