@@ -20,5 +20,8 @@
   "dependencies": {
     "@bte-germany/terraconvert": "^1.1.2",
     "prismarine-nbt": "^2.7.0"
+  },
+  "devDependencies": {
+    "browserify": "^17.0.1"
   }
 }
