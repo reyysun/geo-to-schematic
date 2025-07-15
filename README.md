@@ -1,7 +1,7 @@
 # BuildTheEarth Schematic Converter
 * С помощью данного сайта можно конвертировать KML и Geojson файлы в Minecraft schematic-файлы, в котором геометрические объекты будут размещены по проекции BuildTheEarth. Таким образом, например, можно перенести геометрические объекты, нарисованные в Google Earth Pro, в мир BTE.
 * This site allows you to convert KML and Geojson files into Minecraft schematic files, in which geometry elements will be placed according to the BuildTheEarth projection. Thus, for example, you can transfer geometric objects drawn in Google Earth Pro to your BTE world.
-![BTE Schematic Converter logo](https://github.com/reyysun/bte-schematic-convertrer/blob/main/btesc.png "BTE Schematic Converter logo")
+![BTE Schematic Converter logo](https://github.com/reyysun/bte-schematic-convertrer/blob/main/images/btesc.png "BTE Schematic Converter logo")
 ## Инфо
 * Сайт поддерживает файлы географических данных с расширениями ".kml" и ".geojson";
 * Выходной файл - схематик с расширением ".schem" (Sponge schematic);
