@@ -36,7 +36,7 @@
     .title {
       font-size: 28px;
       font-weight: bold;
-      color: lightcyan; /* или другой цвет, подходящий под фон */
+      color: lightcyan;
       text-shadow: 0 0 5px #002548, 0 0 10px #002548, 0 0 15px #002548;
     }
     .logo {
@@ -56,57 +56,69 @@
   <div style="text-align: left">
     <input id="file" type="file" accept=".kml,.geojson,.json" onchange="upload(this)" multiple/><br/>
   </div>
+
   <div id="status" style="margin-top: 20px; margin-bottom: 10px; text-align: left; font-weight: bold;">
-    Импортируйте файл
+    Import your file
   </div>
-  <div id="originpoint" 
+
+  <div id="pasteexplanation" 
   style="margin-top: 5px; margin-bottom: 5px; font-weight: bold; font-size: small; color: mediumseagreen"></div>
+  <div id="pasteexplanation2"
+  style="font-weight: bold; font-size: small; color: mediumseagreen"></div>
+
   <ul id="downloads"></ul>
+
   <hr>
   <div style="margin-bottom: 10px; margin-top: 20px;">
-    <label for="blockId">ID блока, из которого будут сделаны контуры:</label>
+    <label for="blockId">Block ID used for contours:</label>
     <input id="blockId" type="text" value="diamond_block"/>
   </div>
-  <div style="margin-bottom: 10px;">
-    <label for="exportFileName">Имя экспортируемого файла:</label>
-    <label>
-      <input type="text" id="exportFileName" value="converted"/>.schem
-    </label>
-  </div>
-  <div>
+  <div style="margin-top: 10px">
     <label>
       <input type="checkbox" id="doConnections" checked="true">
-      Соединить точки
+      Connect points
     </label>
   </div>
   <hr>
   <input type="file" id="fileInput" accept=".kml,.geojson" style="display: none;" />
-  <div style="margin-top: 20px; font-size: 14px;">Privacy notice: all files are processed by your local machine and aren't uploaded to any server.</div>
+  <div style="margin-top: 20px; font-size: 14px;">Privacy notice: all files are processed by your local machine and aren't uploaded to any server.
+    <br><a href="https://github.com/reyysun/bte-schematic-convertrer">Source code</a>
+  </div>
 
 
   <script>
     // ЛОГИКА САЙТА
     const fileInput = document.getElementById('fileInput');
     const statusText = document.getElementById('status');
-    const originPointText = document.getElementById('originpoint');
+    const explanationText = document.getElementById('pasteexplanation');
+    const explanationText2 = document.getElementById('pasteexplanation2');
+    const blockIdInput = document.getElementById('blockId');
+    const doConnectionsBox = document.getElementById('doConnections');
 
     function uploadFile(file) {
-      console.log('Processing ' + file.name)
+      console.log('Processing ' + file.name);
+      
       var fr = new FileReader();
       fr.onload = function() {
+
         var name = file.name.toLowerCase();
         let fileType;
+
         if (name.endsWith('.kml')) {
           fileType = 'kml'
         } else if (name.endsWith('.geojson') || name.endsWith('.json')) {
           fileType = 'geojson'
         } else {
-          statusUpdate('Файл не поддерживается', 'salmon')
-          alert('Поддерживаются только файлы с расширением .kml и .geojson')
+          statusUpdate('File not supported', 'salmon')
+          alert('Only .kml and .geojson files are supported')
         }
-        statusUpdate('Идет конвертация...', 'wheat')
 
-        const result = convertGeoData(fr.result, fileType, 'diamond_block', true)
+        const blockId = blockIdInput.value;
+        console.log('blockId: ',blockId)
+        const doConnections = doConnectionsBox.checked;
+        console.log('doConnections: ',doConnections)
+        statusUpdate('Converting...', 'wheat')
+        const result = convertGeoData(fr.result, fileType, blockId, doConnections)
 
         if (~name.lastIndexOf('.')) {
             name = name.substr(0, name.lastIndexOf('.'));
@@ -114,7 +126,7 @@
     
         name += '.schem';
     
-        var blob = new Blob([result[0]], {type: 'application/nbt'});
+        var blob = new Blob([result[0]], {type: 'application/nbt'}); // result[0] - это файл
         var link = document.createElement('a');
         link.href = window.URL.createObjectURL(blob);
         link.download = name;
@@ -125,9 +137,9 @@
         li.appendChild(document.createTextNode(` (${result[1]})`)) // result[1] - это originalPoint
         document.querySelector('#downloads').appendChild(li);
 
-        statusUpdate('Файл успешно сконвертирован!', 'MediumSeaGreen')
-        originPointText.textContent = 'Для вставки схемы на сервере используйте «//paste -a -o». '+
-                                    'Если вы используете Litematica, вставьте схему по координатам ниже.'
+        statusUpdate('Success!', 'MediumSeaGreen')
+        explanationText.textContent = `Use «//schem load ${name}» and «//paste -a -o» to paste your schematic on the server.`
+        explanationText2.textContent = "If you're using Litematica, set the placement origin of the schematic to the coordinates below."
       }
       fr.readAsText(file);
     }
