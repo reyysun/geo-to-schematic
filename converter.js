@@ -2,19 +2,20 @@ const terraconvert = require('@bte-germany/terraconvert');
 const nbt = require('prismarine-nbt')
 const zlib = require('zlib')
 
-// Чтение и парсинг файла KML
-/* Вид возвращаемого словаря (ключ - высота, значение - массив линий):
-  {1: [ 
-        [ [lon,lat], [lon,lat], [lon,lat]... ]
-        [ [lon,lat], [lon,lat], [lon,lat]... ]
-        ...
-      ]
-   2: ...
-  }
-*/
+
 
 function convertGeoData(geotext, fileType, blockId, doConnections) {
 
+  // Чтение и парсинг файла KML
+  /* Вид возвращаемого словаря (ключ - высота, значение - массив линий):
+    {1: [ 
+          [ [lon,lat], [lon,lat], [lon,lat]... ]
+          [ [lon,lat], [lon,lat], [lon,lat]... ]
+          ...
+        ]
+    2: ...
+    }
+  */
   function KMLParse(data) {
     const xml = new DOMParser().parseFromString(data, "text/xml");
 
@@ -86,7 +87,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
     return contours;
   }
 
-  // Geojson
+  // То же самое для Geojson
   function GeojsonParse(data) {
 
     const file = JSON.parse(data);
@@ -287,10 +288,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
         },
       };
 
-      const nbtBuffer = nbt.writeUncompressed(schematic);
-      const compressed = zlib.gzipSync(nbtBuffer);
-      
-      return [compressed, originPoint];
+      return [schematic, originPoint];
   }
 
 
@@ -332,6 +330,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
       return points;
   }
 
+  // This is where it all begins...
   let parsedData
 
   if (fileType == 'kml') {parsedData = KMLParse(geotext)}
@@ -340,7 +339,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
   const contours = getBTECoords(parsedData);
   const schematicResult = createSchematic(contours, blockId, doConnections);
   const schematic = schematicResult[0]; const originPoint = schematicResult[1];
-  const nbtBuffer = writeUncompressed(schematic);
+  const nbtBuffer = nbt.writeUncompressed(schematic);
   const compressed = zlib.gzipSync(nbtBuffer);
 
   return [compressed, originPoint]

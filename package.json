@@ -1,0 +1,24 @@
+{
+  "name": "bte-schematic-converter-web",
+  "version": "1.0.0",
+  "main": "converter.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reyysun/bte-schematic-convertrer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/reyysun/bte-schematic-convertrer/issues"
+  },
+  "homepage": "https://github.com/reyysun/bte-schematic-convertrer#readme",
+  "description": "",
+  "dependencies": {
+    "@bte-germany/terraconvert": "^1.1.2",
+    "prismarine-nbt": "^2.7.0"
+  }
+}
