@@ -1,7 +1,7 @@
-![BTE Schematic Converter logo](https://github.com/reyysun/bte-schematic-convertrer/blob/main/images/btestylelogo.png "BTE Schematic Converter logo")
-# BuildTheEarth Schematic Converter
-* С помощью данного сайта можно конвертировать KML и Geojson файлы в Minecraft schematic-файлы, в котором геометрические объекты будут размещены по проекции BuildTheEarth. Таким образом, например, можно перенести геометрические объекты, нарисованные в Google Earth Pro, в мир BTE.
-* This site allows you to convert KML and Geojson files into Minecraft schematic files, in which geometry elements will be placed according to the BuildTheEarth projection. Thus, for example, you can transfer geometric objects drawn in Google Earth Pro to your BTE world.
+![Geo to Schematic logo](https://github.com/reyysun/geo-to-schematic/blob/main/images/btestylelogo.png "BTE Schematic Converter logo")
+# Geo to Schematic
+* С помощью данного приложения вы можете конвертировать KML и Geojson файлы в Minecraft schematic-файлы, в котором геометрические объекты будут размещены по проекции BuildTheEarth. Таким образом, например, можно перенести геометрические объекты, нарисованные в Google Earth Pro, в мир BTE.
+* This app allows you to convert KML and Geojson files into Minecraft schematic files, in which geometry elements will be placed according to the BuildTheEarth projection. Thus, for example, you can transfer geometric objects drawn in Google Earth Pro to your BTE world.
 ## Инфо
 * Сайт поддерживает файлы географических данных с расширениями ".kml" и ".geojson";
 * Выходной файл - схематик с расширением ".schem" (Sponge schematic);
@@ -21,8 +21,8 @@
 This project uses [Browserify](https://browserify.org/) to convert `converter.js` into a browser-ready `ultraconverter.js`, which is used by `index.html`. You can look up for ultraconverter in gh-pages branch, but it's 38k lines long, so there's no need to edit that file manually — instead, make changes in `converter.js`, then bundle it using Browserify. Here's how:
 1. Clone the main repository
 ```
-git clone https://github.com/reyysun/bte-schematic-convertrer
-cd bte-schematic-convertrer
+git clone https://github.com/reyysun/geo-to-schematic
+cd geo-to-schematic
 ```
 2. Install dependencies
 ```

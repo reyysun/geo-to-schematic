@@ -1,5 +1,5 @@
 {
-  "name": "bte-schematic-converter-web",
+  "name": "geo-to-schematic",
   "version": "1.0.0",
   "main": "converter.js",
   "scripts": {
@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reyysun/bte-schematic-convertrer.git"
+    "url": "git+https://github.com/reyysun/geo-to-schematic.git"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/reyysun/bte-schematic-convertrer/issues"
+    "url": "https://github.com/reyysun/geo-to-schematic/issues"
   },
-  "homepage": "https://github.com/reyysun/bte-schematic-convertrer#readme",
+  "homepage": "https://github.com/reyysun/geo-to-schematic#readme",
   "description": "",
   "dependencies": {
     "@bte-germany/terraconvert": "^1.1.2",
