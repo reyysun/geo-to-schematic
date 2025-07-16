@@ -4,12 +4,18 @@
 <head>
   <meta charset="UTF-8" />
   <title>BTE Schematic Converter</title>
-  <link rel="icon" href="icon.ico" type="image/x-icon">
+  <link rel="icon" href="images/icon.ico" type="image/x-icon">
   <script src="ultraconverter.js"></script>
 
   <style>
     body {
+      background-image: url('images/sitebg.png');
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
       background-color: #2c2c2c;
+      margin-left: 20px;
+      margin-top: 25px;
       color: #f5f5f5;
       font-family: sans-serif;
     }
@@ -34,24 +40,41 @@
       margin-top: 5px;
     }
     .title {
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 10px;
       font-size: 28px;
       font-weight: bold;
       color: lightcyan;
       text-shadow: 0 0 5px #002548, 0 0 10px #002548, 0 0 15px #002548;
     }
     .logo {
+      vertical-align: middle;
+      display: inline-block;
       height: 100%;
-      max-width: 150px;
+      max-width: 100px;
+    }
+    a:link {
+      color: mediumturquoise;
+      text-decoration: underline;
+    }
+    a:visited {
+      color: mediumpurple;
+      text-decoration: underline;
     }
     
   </style>
 </head>
 
 <body>
-  <div class="title">BTE Schematic Converter</div>
+  <div>
+    <img src="images/btestylelogo.png" alt="logo" class="logo"/>
+    <div class="title">BTE Schematic Converter</div>
+  </div>
+  
 
-  <div style="margin-top: 25px; margin-bottom: 15px;">Convert your geodata files to BuildTheEarth-ready schematic files!
-    <br>KML and Geojson formats are supported.</div>
+  <div style="margin-top: 25px; margin-bottom: 15px;">
+    Convert your KML & GeoJSON files to BuildTheEarth-ready schematic files!</div>
 
   <div style="text-align: left">
     <input id="file" type="file" accept=".kml,.geojson,.json" onchange="upload(this)" multiple/><br/>
@@ -69,11 +92,11 @@
   <ul id="downloads"></ul>
 
   <hr>
-  <div style="margin-bottom: 10px; margin-top: 20px;">
+  <div style="margin-bottom: 10px; margin-top: 15px;">
     <label for="blockId">Block ID used for contours:</label>
     <input id="blockId" type="text" value="diamond_block"/>
   </div>
-  <div style="margin-top: 10px">
+  <div style="margin-top: 10px; margin-bottom: 20px;">
     <label>
       <input type="checkbox" id="doConnections" checked="true">
       Connect points
@@ -112,12 +135,13 @@
           statusUpdate('File not supported', 'salmon')
           alert('Only .kml and .geojson files are supported')
         }
+        statusUpdate('Converting...', 'wheat')
 
         const blockId = blockIdInput.value;
         console.log('blockId: ',blockId)
         const doConnections = doConnectionsBox.checked;
         console.log('doConnections: ',doConnections)
-        statusUpdate('Converting...', 'wheat')
+        
         const result = convertGeoData(fr.result, fileType, blockId, doConnections)
 
         if (~name.lastIndexOf('.')) {
@@ -138,7 +162,7 @@
         document.querySelector('#downloads').appendChild(li);
 
         statusUpdate('Success!', 'MediumSeaGreen')
-        explanationText.textContent = `Use «//schem load ${name}» and «//paste -a -o» to paste your schematic on the server.`
+        explanationText.textContent = "On a server, use «//paste -a -o» to correctly paste your schematic."
         explanationText2.textContent = "If you're using Litematica, set the placement origin of the schematic to the coordinates below."
       }
       fr.readAsText(file);
