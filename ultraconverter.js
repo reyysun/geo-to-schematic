@@ -16943,7 +16943,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
 
   // Создание схематики
   function createSchematic(btecoords, blockId, doConnections) {
-      const MAX_ALLOWED_SIZE = 100_000_000;
+      const MAX_ALLOWED_SIZE = 300_000_000;
 
       // Получаем все координаты
       const allCoords = Object.entries(btecoords).flatMap(([elev, lines]) =>
