@@ -74,7 +74,7 @@
   
 
   <div style="margin-top: 25px; margin-bottom: 15px;">
-    Convert your KML & GeoJSON files to BuildTheEarth-ready schematic files!</div>
+    Convert your KML and GeoJSON files into schematic files ready for BuildTheEarth!</div>
 
   <div style="text-align: left">
     <input id="file" type="file" accept=".kml,.geojson,.json" onchange="upload(this)" multiple/><br/>
@@ -93,7 +93,7 @@
 
   <hr>
   <div style="margin-bottom: 10px; margin-top: 15px;">
-    <label for="blockId">Block ID used for contours:</label>
+    <label for="blockId">Outline block ID:</label>
     <input id="blockId" type="text" value="diamond_block"/>
   </div>
   <div style="margin-top: 10px; margin-bottom: 20px;">
@@ -176,8 +176,8 @@
         document.querySelector('#downloads').appendChild(li);
 
         statusUpdate('Success!', 'MediumSeaGreen')
-        explanationText.textContent = "On a server, use «//paste -a -o» to correctly paste your schematic."
-        explanationText2.textContent = "If you're using Litematica, set the placement origin of the schematic to the coordinates below."
+        explanationText.textContent = "On a server, use «//paste -a -o» to correctly place the schematic."
+        explanationText2.textContent = "If you're using Litematica, set the schematic's placement origin to the coordinates below."
       }
       fr.readAsText(file);
     }
