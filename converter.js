@@ -1,158 +1,9 @@
 const terraconvert = require('@bte-germany/terraconvert');
 const nbt = require('prismarine-nbt')
 const zlib = require('zlib')
-
-
+const { KMLParse, GeojsonParse } = require('./geoparser')
 
 function convertGeoData(geotext, fileType, blockId, doConnections) {
-
-  // Чтение и парсинг файла KML
-  /* Вид возвращаемого словаря (ключ - высота, значение - массив линий):
-    {1: [ 
-          [ [lon,lat], [lon,lat], [lon,lat]... ]
-          [ [lon,lat], [lon,lat], [lon,lat]... ]
-          ...
-        ]
-    2: ...
-    }
-  */
-  function KMLParse(data) {
-    const xml = new DOMParser().parseFromString(data, "text/xml");
-
-    const contours = {};
-
-    const placemarks = [...xml.getElementsByTagName("Placemark")];
-
-    for (const placemark of placemarks) {
-        const elevationData = getElevationFromExtendedData(placemark);
-
-        let geometries = [];
-
-        const lineString = placemark.getElementsByTagName("LineString");
-        for (const line of lineString) {
-            geometries.push({ type: "LineString", element: line });
-        }
-
-        const polygons = placemark.getElementsByTagName("Polygon");
-        for (const poly of polygons) {
-            geometries.push({ type: "Polygon", element: poly });
-        }
-
-        const multiGeometry = placemark.getElementsByTagName("MultiGeometry");
-        if (multiGeometry.length > 0) {
-            const multi = multiGeometry[0];
-
-            const multiLines = multi.getElementsByTagName("LineString");
-            for (const line of multiLines) {
-                geometries.push({ type: "LineString", element: line });
-            }
-
-            const multiPolys = multi.getElementsByTagName("Polygon");
-            for (const poly of multiPolys) {
-                geometries.push({ type: "Polygon", element: poly });
-            }
-        }
-
-        for (const { type, element } of geometries) {
-            let geometriesCoords = [];
-
-            if (type === "LineString") {
-                const coordsText = element.getElementsByTagName("coordinates")[0]?.textContent?.trim();
-                if (coordsText) geometriesCoords.push(coordsText);
-            }
-
-            if (type === "Polygon") {
-                const outer = element.getElementsByTagName("outerBoundaryIs")[0]?.getElementsByTagName("coordinates")[0]?.textContent?.trim();
-                if (outer) geometriesCoords.push(outer);
-
-                const innerBoundaries = element.getElementsByTagName("innerBoundaryIs");
-                for (const inner of innerBoundaries) {
-                    const innerCoords = inner.getElementsByTagName("coordinates")[0]?.textContent?.trim();
-                    if (innerCoords) geometriesCoords.push(innerCoords);
-                }
-            }
-
-            for (const coords of geometriesCoords) {
-                const points = coords
-                    .split(/\s+/)
-                    .map(coord => coord.split(',').map(Number));
-
-                const elevation = defineElevation(elevationData, points[0], contours);
-                const linePoints = removeThirdParameter(points);
-                contours[elevation].push(linePoints);
-            }
-        }
-    }
-
-    return contours;
-  }
-
-  // То же самое для Geojson
-  function GeojsonParse(data) {
-
-    const file = JSON.parse(data);
-    const contours = {};
-    const features = file.features;
-
-    // Обрабатываем каждую фигуру в features
-    for (const feature of features) {
-
-        const featureCoordinates = feature.geometry.coordinates;
-        if (!featureCoordinates) continue;
-
-        let firstPoint = featureCoordinates[0];
-        let isPoly = false;
-        const featureType = feature.geometry.type;
-        if (featureType == 'Polygon') {
-            isPoly = true;
-            firstPoint = featureCoordinates[0][0]
-        }
-
-        // Получение высоты в properties (для geojson созданных в qgis)
-        const elevationData = feature.properties.ELEV;
-        const elevation = defineElevation(elevationData, firstPoint, contours)
-
-        // ПОЛИГОН
-        if (isPoly) {
-            const lines = featureCoordinates.map(      // Оставляем в списке координат точек линии всё кроме высоты
-                line => removeThirdParameter(line));
-
-            for (let i = 0; i < lines.length; i++) {
-                contours[elevation].push(lines[i])     // Перебираем каждый полигон и пушим его в словарь
-            }
-        }
-
-        // ЛИНИЯ
-        else {
-            const line = removeThirdParameter(featureCoordinates);
-            contours[elevation].push(line);
-        }
-    }
-    return contours
-  }
-
-  function getElevationFromExtendedData(placemark) {
-      const simpleData = placemark.getElementsByTagName("SimpleData");
-      for (const data of simpleData) {
-          if (data.getAttribute("name") === "ELEV") {
-              return data.textContent;
-          }
-      }
-      return undefined;
-  }
-
-  function defineElevation(elevationData, firstPoint, contours) {
-      const elevation = elevationData !== undefined
-              ? Number(elevationData)               // Если был найден ELEV, то преобразуем его в число
-              : (Math.round(firstPoint[2] ?? 0));   // если нет ELEV — берем высоту из третьего числа координат
-      if (!contours[elevation]) {contours[elevation] = []}; // Заодно создаем ключ высоты в contours, если такой высоты еще нет
-      return elevation
-  }
-
-  // Функция, оставляющая только широту и долготу и убирающая третий параметр (высоту), если он есть
-  function removeThirdParameter(linePoints) {
-      return linePoints.map(p => [p[0], p[1]])  
-  }
 
   // Преобразование координат в проекцию BTE и округление
   function getBTECoords(contours) {
@@ -187,7 +38,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
 
   // Создание схематики
   function createSchematic(btecoords, blockId, doConnections) {
-      const MAX_ALLOWED_SIZE = 500_000_000;
+      const MAX_ALLOWED_SIZE = 100_000_000;
 
       // Получаем все координаты
       const allCoords = Object.entries(btecoords).flatMap(([elev, lines]) =>
@@ -213,7 +64,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
 
       const totalSize = width * height * length;
       if (totalSize > MAX_ALLOWED_SIZE) {
-        throw new Error("Размер схемы слишком большой для обработки.");
+        throw new Error("Schematic too big");
       }
 
       const blockData = new Uint8Array(totalSize);
@@ -233,7 +84,8 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
           let segmentPoints;
           
           // Соединения точек включены
-          if (doConnections) {
+          if (doConnections && flat2D.length > 1) {
+            // Если flat2D == 1, то это Point. Точки сюда не попадают
             segmentPoints = [];
             for (let i = 0; i < flat2D.length - 1; i++) {
               segmentPoints.push(...bresenham2D(...flat2D[i], ...flat2D[i + 1]));
@@ -242,8 +94,8 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
           // Соединения точек выключены
           else {
             segmentPoints = [];
-            for (let i = 0; i < flat2D.length-1; i++) {
-              segmentPoints.push(flat2D[i])
+            for (const point of flat2D) {
+              segmentPoints.push(point)
             }
           }
 
@@ -262,7 +114,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
       const schematic = {
         type: nbt.TagType.Compound,
         name: "Schematic",
-        author: "KMLtoBTESchematic",
+        author: "GeoToSchematic",
         value: {
           DataVersion: { type: nbt.TagType.Int, value: 3700 },
           Version: { type: nbt.TagType.Int, value: 2 },
@@ -343,6 +195,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
   const compressed = zlib.gzipSync(nbtBuffer);
 
   return [compressed, originPoint]
+
 }
 
 window.convertGeoData = convertGeoData;

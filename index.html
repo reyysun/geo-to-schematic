@@ -142,7 +142,21 @@
         const doConnections = doConnectionsBox.checked;
         console.log('doConnections: ',doConnections)
         
-        const result = convertGeoData(fr.result, fileType, blockId, doConnections)
+        let result
+        try {
+          result = convertGeoData(fr.result, fileType, blockId, doConnections)
+          console.log('Successful conversion! Now doing download...')
+        } catch (err) {
+          if (err.message === "Schematic too big") {
+            statusUpdate(
+              'Conversion cancelled: Hold on pal, your schematic is too damn big (>100kk blocks in volume)', 'salmon'
+            )
+          }
+          else { statusUpdate(
+            'Error while reading the file. Please make sure that your file is correct', 'salmon') }
+          console.log(err)
+          return
+        }
 
         if (~name.lastIndexOf('.')) {
             name = name.substr(0, name.lastIndexOf('.'));
