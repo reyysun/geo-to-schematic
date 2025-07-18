@@ -1,3 +1,11 @@
+/*
+  The logic begind creating a schematic from an array of coordinates
+  was taken from TerraSketch (https://github.com/Codestian/TerraSketch)
+  and modified to support heights.
+  I appreciate Codestian's work behind this code and recommend you
+  to use TerraSketch, it's really great for outlining!
+*/
+
 const terraconvert = require('@bte-germany/terraconvert');
 const nbt = require('prismarine-nbt')
 const zlib = require('zlib')
