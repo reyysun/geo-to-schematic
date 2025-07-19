@@ -47,6 +47,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
   // Создание схематики
   function createSchematic(btecoords, blockId, doConnections) {
       const MAX_ALLOWED_SIZE = 300_000_000;
+      const TagType = nbt.TagType
 
       // Получаем все координаты
       const allCoords = Object.entries(btecoords).flatMap(([elev, lines]) =>
@@ -118,35 +119,48 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
 
       const originPoint = [Math.ceil(minX), Math.ceil(minY), Math.ceil(minZ)]
 
-      // Создание схематика
+      // Создание схематика (Sponge Schematic v3) 
+      // (https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/schematic-3.md)
       const schematic = {
-        type: nbt.TagType.Compound,
-        name: "Schematic",
-        author: "GeoToSchematic",
+        type: TagType.Compound,
+        name: "",
         value: {
-          DataVersion: { type: nbt.TagType.Int, value: 3700 },
-          Version: { type: nbt.TagType.Int, value: 2 },
-          Width: { type: nbt.TagType.Short, value: length },
-          Height: { type: nbt.TagType.Short, value: height },
-          Length: { type: nbt.TagType.Short, value: width },
-          PaletteMax: { type: nbt.TagType.Int, value: 2 },
-          Palette: { type: nbt.TagType.Compound, value: palette },
-          BlockData: { type: nbt.TagType.ByteArray, value: blockData },
-          BlockEntities: {
-            type: nbt.TagType.List,
-            value: { type: nbt.TagType.Compound, value: [] },
-          },
-          Entities: {
-            type: nbt.TagType.List,
-            value: { type: nbt.TagType.Compound, value: [] },
-          },
-          Metadata: { type: nbt.TagType.Compound, value: {} },
-          Offset: {
-            type: nbt.TagType.IntArray,
-            value: originPoint,
-          },
-        },
-      };
+          Schematic: {
+            type: TagType.Compound,
+            name: "Schematic",
+            value: {
+              Version: { type: TagType.Int, value: 3 },
+              DataVersion: { type: TagType.Int, value: 3700 },
+
+              Width: { type: TagType.Short, value: length },
+              Height: { type: TagType.Short, value: height },
+              Length: { type: TagType.Short, value: width },
+
+              // Исходная точка схематики (//paste -a -o)
+              Offset: {
+                type: TagType.IntArray,
+                value: originPoint,
+              },
+
+              Metadata: { 
+                type: TagType.Compound, 
+                value: {
+                  Author: { type: TagType.String, value: "GeoToSchematic" },
+                  Name: { type: TagType.String, value: "BuildTheEarth schematic" }
+                } 
+              },
+              
+              Blocks: {
+                type: TagType.Compound, 
+                value: {
+                  Palette: { type: TagType.Compound, value: palette },
+                  Data: { type: TagType.ByteArray, value: blockData },
+                }
+              }
+            }
+          }
+        }
+      }
 
       return [schematic, originPoint];
   }
