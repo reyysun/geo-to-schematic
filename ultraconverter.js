@@ -16937,7 +16937,6 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
 
   // Создание схематики
   function createSchematic(btecoords, blockId, doConnections) {
-      const MAX_ALLOWED_SIZE = 300_000_000;
       const TagType = nbt.TagType
 
       // Получаем все координаты
@@ -16963,7 +16962,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
       const height = maxY - minY + 1;
 
       const totalSize = width * height * length;
-      if (totalSize > MAX_ALLOWED_SIZE) {
+      if ((width > 10000 || length > 10000) || height > 2000) {
         throw new Error("Schematic too big");
       }
 
