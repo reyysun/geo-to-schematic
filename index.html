@@ -19,26 +19,6 @@
       color: #f5f5f5;
       font-family: sans-serif;
     }
-    button {
-      background-color: #3a3a3a;
-      font-size: 14px;
-      color: #f0f0f0;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 5px;
-      margin-top: 10px;
-      width: 260px;
-      height: 40px;
-      cursor: pointer;
-    }
-    input {
-      background-color: #2a2a2a;
-      color: #f0f0f0;
-      border: 1px solid #555;
-      padding: 6px;
-      border-radius: 4px;
-      margin-top: 5px;
-    }
     .title {
       display: inline-block;
       vertical-align: middle;
@@ -54,6 +34,17 @@
       height: 100%;
       max-width: 100px;
     }
+    .nicebox {
+      background-color: #2a2a2a;
+      color: #f0f0f0;
+      border: 1px solid #555;
+      padding: 6px;
+      border-radius: 4px;
+      margin-top: 5px;
+      display: inline-block;
+      font-family: inherit;
+    }
+
     a:link {
       color: mediumturquoise;
       text-decoration: underline;
@@ -71,17 +62,16 @@
     <img src="images/btestylelogo.png" alt="logo" class="logo"/>
     <div class="title">GeoToSchematic</div>
   </div>
-  
 
   <div style="margin-top: 25px; margin-bottom: 15px;">
-    Convert your KML and GeoJSON files into schematic files ready for BuildTheEarth!</div>
+    Convert KML and GeoJSON files into Minecraft schematics using BuildTheEarth projection!</div>
 
-  <div style="text-align: left">
-    <input id="file" type="file" accept=".kml,.geojson,.json" onchange="upload(this)" multiple/><br/>
+  <div id="status" style="margin-top: 25px; margin-bottom: 10px; text-align: left; font-weight: bold;">
+    Import your file:
   </div>
 
-  <div id="status" style="margin-top: 20px; margin-bottom: 10px; text-align: left; font-weight: bold;">
-    Import your file
+  <div>
+    <input id="file" class="nicebox" type="file" accept=".kml,.geojson,.json" onchange="upload(this)" multiple/><br/>
   </div>
 
   <div id="pasteexplanation" 
@@ -91,20 +81,23 @@
 
   <ul id="downloads"></ul>
 
-  <hr>
-  <div style="margin-bottom: 10px; margin-top: 15px;">
-    <label for="blockId">Outline block ID:</label>
-    <input id="blockId" type="text" value="diamond_block"/>
+  <div class="nicebox" style="display: inline-block; font-family: inherit">
+
+    <div style="margin-bottom: 10px; margin-top: 5px;">
+      <label for="blockId">Block ID:</label>
+      <input id="blockId" class="nicebox" type="text" value="diamond_block"/>
+    </div>
+    <div style="margin-top: 10px; margin-bottom: 10px;">
+      <label>
+        <input type="checkbox" id="doConnections" checked="true">
+        Connect vertices
+      </label>
+    </div>
+
   </div>
-  <div style="margin-top: 10px; margin-bottom: 20px;">
-    <label>
-      <input type="checkbox" id="doConnections" checked="true">
-      Connect points
-    </label>
-  </div>
-  <hr>
   <input type="file" id="fileInput" accept=".kml,.geojson" style="display: none;" />
-  <div style="margin-top: 20px; font-size: 14px;">Privacy notice: all files are processed by your local machine and aren't uploaded to any server.
+  <div style="margin-top: 20px; font-size: 14px;">
+    Privacy notice: all files are processed by your local machine and aren't uploaded to any server.
     <br><a href="https://github.com/reyysun/geo-to-schematic">Source code</a>
   </div>
 
@@ -135,12 +128,17 @@
           statusUpdate('File not supported', 'salmon')
           alert('Only .kml and .geojson files are supported')
         }
-        statusUpdate('Converting...', 'wheat')
 
         const blockId = blockIdInput.value;
         console.log('blockId: ',blockId)
         const doConnections = doConnectionsBox.checked;
         console.log('doConnections: ',doConnections)
+        if ( !blockId ) {
+          alert('Please enter the block ID');
+          return
+        }
+
+        statusUpdate('Converting...', 'wheat')
         
         let result
         try {
@@ -149,7 +147,7 @@
         } catch (err) {
           if (err.message === "Schematic too big") {
             statusUpdate(
-              'Conversion cancelled: Hold on pal, your schematic is too damn big (>100kk blocks in volume)', 'salmon'
+              `Hold on pal, you're trying to get too damn big schematic! How about splitting it into smaller ones?`, 'salmon'
             )
           }
           else { statusUpdate(
