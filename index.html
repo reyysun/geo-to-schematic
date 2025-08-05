@@ -53,6 +53,39 @@
       color: mediumpurple;
       text-decoration: underline;
     }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+    }
+
+    .tooltip-text {
+      visibility: hidden;
+      background-color: #444;
+      color: #fff;
+      text-align: left;
+      line-height: 1.3;
+      border-radius: 6px;
+      padding: 8px 10px;
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      left: 110%;
+      transform: translateY(-50%);
+      opacity: 0;
+      transition: opacity 0.2s;
+
+      width: max-content;        /* Автоширина по содержимому */
+      max-width: 600px;          /* Ограничение по максимуму (по желанию) */
+      white-space: normal;       /* Разрешить перенос строк */
+      box-sizing: border-box;    /* Учитывать padding в расчётах ширины */
+    }
+
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
     
   </style>
 </head>
@@ -64,7 +97,9 @@
   </div>
 
   <div style="margin-top: 25px; margin-bottom: 15px;">
-    Convert KML and GeoJSON files into Minecraft schematics using BuildTheEarth projection!</div>
+    Convert KML and GeoJSON files into Minecraft schematics using BuildTheEarth projection!<br>
+    Elevation handling is supported.
+  </div>
 
   <div id="status" style="margin-top: 25px; margin-bottom: 10px; text-align: left; font-weight: bold;">
     Import your file:
@@ -83,16 +118,42 @@
 
   <div class="nicebox" style="display: inline-block; font-family: inherit">
 
+    <!--Block ID-->
     <div style="margin-bottom: 10px; margin-top: 5px;">
       <label for="blockId">Block ID:</label>
-      <input id="blockId" class="nicebox" type="text" value="diamond_block"/>
+      <input id="blockId" type="text" class="nicebox" value="diamond_block"/>
+      <span class="tooltip">❔
+        <span class="tooltip-text">
+          The block used for lines and points in the schematic.
+        </span>
+      </span>
     </div>
+    <!--Y Offset-->
+    <div style="margin-top: 10px; margin-bottom: 10px;">
+      <label for="doYOffset">Y Offset:</label>
+      <input id="doYOffset" type="text" class="nicebox" value="0" style="width: 40px;"/>
+      <span class="tooltip">❔
+        <span class="tooltip-text">
+          On some BTE servers, the Y level may not match the actual elevation.<br>
+          You can set how much objects will be offset vertically from the Y levels they're supposed to be on.<br>
+          For example, this value has to be "-2016" for Italy schematics, because Y level -2016 equals real elevation 0 on BTE Italia.<br>
+        </span>
+      </span>
+    </div>
+    <!--Connect vertices-->
     <div style="margin-top: 10px; margin-bottom: 10px;">
       <label>
         <input type="checkbox" id="doConnections" checked="true">
         Connect vertices
       </label>
+      <span class="tooltip">❔
+        <span class="tooltip-text">
+          If disabled, the vertices of lines and polygons will not be connected and they'll become points.
+        </span>
+      </span>
     </div>
+    
+    
 
   </div>
   <input type="file" id="fileInput" accept=".kml,.geojson" style="display: none;" />
@@ -110,6 +171,7 @@
     const explanationText2 = document.getElementById('pasteexplanation2');
     const blockIdInput = document.getElementById('blockId');
     const doConnectionsBox = document.getElementById('doConnections');
+    const doYOffsetInput = document.getElementById('doYOffset')
 
     function uploadFile(file) {
       console.log('Processing ' + file.name);
@@ -130,11 +192,14 @@
         }
 
         const blockId = blockIdInput.value;
-        console.log('blockId: ',blockId)
+        console.log('blockId: ',blockId);
         const doConnections = doConnectionsBox.checked;
-        console.log('doConnections: ',doConnections)
-        if ( !blockId ) {
-          alert('Please enter the block ID');
+        console.log('doConnections: ',doConnections);
+        const yOffset = parseInt(doYOffsetInput.value);
+        console.log('YOffset: ',yOffset);
+
+        if ( !blockId || !yOffset ) {
+          alert('Please enter correct block ID and Y offset');
           return
         }
 
@@ -142,7 +207,7 @@
         
         let result
         try {
-          result = convertGeoData(fr.result, fileType, blockId, doConnections)
+          result = convertGeoData(fr.result, fileType, blockId, doConnections, yOffset)
           console.log('Successful conversion! Now doing download...')
         } catch (err) {
           if (err.message === "Schematic too big") {
