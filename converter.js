@@ -11,7 +11,7 @@ const nbt = require('prismarine-nbt')
 const zlib = require('zlib')
 const { KMLParse, GeojsonParse } = require('./geoparser')
 
-function convertGeoData(geotext, fileType, blockId, doConnections) {
+function convertGeoData(geotext, fileType, blockId, doConnections, yOffset) {
 
   // Преобразование координат в проекцию BTE и округление
   function getBTECoords(contours) {
@@ -45,7 +45,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
 
 
   // Создание схематики
-  function createSchematic(btecoords, blockId, doConnections) {
+  function createSchematic(btecoords, blockId, doConnections, yOffset) {
       const TagType = nbt.TagType
 
       // Получаем все координаты
@@ -116,7 +116,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
         });
       });
 
-      const originPoint = [Math.ceil(minX), Math.ceil(minY), Math.ceil(minZ)]
+      const originPoint = [Math.ceil(minX), Math.ceil(minY) + yOffset, Math.ceil(minZ)]
 
       // Создание схематика (Sponge Schematic v3) 
       // (https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/schematic-3.md)
@@ -210,7 +210,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections) {
   else if (fileType == 'geojson') {parsedData = GeojsonParse(geotext)}
 
   const contours = getBTECoords(parsedData);
-  const schematicResult = createSchematic(contours, blockId, doConnections);
+  const schematicResult = createSchematic(contours, blockId, doConnections, yOffset);
   const schematic = schematicResult[0]; const originPoint = schematicResult[1];
   const nbtBuffer = nbt.writeUncompressed(schematic);
   const compressed = zlib.gzipSync(nbtBuffer);
