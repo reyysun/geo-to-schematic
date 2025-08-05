@@ -198,7 +198,7 @@
         const yOffset = parseInt(doYOffsetInput.value);
         console.log('YOffset: ',yOffset);
 
-        if ( !blockId || !yOffset ) {
+        if ( !blockId || Number.isNaN(yOffset) ) {
           alert('Please enter correct block ID and Y offset');
           return
         }
