@@ -150,7 +150,7 @@ function GeojsonParse(data) {
 
         // Получение высоты в properties (для geojson созданных в qgis)
         const properties = feature.properties;
-        const elevationData = properties.ELEV ?? properties.elevation ?? properties.elevationStart ?? NaN;
+        const elevationData = properties.ELEV ?? properties.elevation ?? properties.elevationStart ?? undefined;
         const elevation = defineElevation(elevationData, firstPoint, contours)
 
         // ПОЛИГОН
