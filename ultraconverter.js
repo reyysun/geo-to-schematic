@@ -17140,6 +17140,7 @@ window.convertGeoData = convertGeoData;
 function KMLParse(data) {
     const xml = new DOMParser().parseFromString(data, "text/xml"); 
 
+    const elevationNames = ["elev","elevation","elevationstart"]
     const contours = {};
     let geometries = [];
 
@@ -17148,26 +17149,34 @@ function KMLParse(data) {
         const geometry = arrayFrom.getElementsByTagName(geometryType);
         if (geometry.length < 1) { return }
 
-        const elevationData = getElevationFromExtendedData(arrayFrom);
+        // Определение высоты, изначально undefined
+        let elevationData = undefined;
+        const simpleData = arrayFrom.getElementsByTagName("SimpleData");
+        // Обработка свойств элемента в SimpleData
+        for (const data of simpleData) {
+            const name = data.getAttribute("name").toLowerCase()
+            // Если есть свойство с именем elev/elevation, то присваиваем elevationData его значение
+            if (elevationNames.includes(name)) {
+                elevationData = data.textContent;
+                break
+            }
+        }
         
         // Добавляем каждый геометрический объект
         // Placemark'а или MultiGeometrии в массив geometries
         for (const element of geometry) {
 
-        const geometryObject = 
-            { type: geometryType, element: element }
+            const geometryObject = 
+                { type: geometryType, element: element, ELEV: elevationData }
 
-        // Если существует ELEV, то его тоже добавляем как свойство объекта
-        if (elevationData) { geometryObject.ELEV = elevationData }
-        arrayIn.push(geometryObject)
+            arrayIn.push(geometryObject)
+
         }
     }
 
     // Получение и разбор каждого placemark в документе
     const placemarks = [...xml.getElementsByTagName("Placemark")];
     for (const placemark of placemarks) {
-
-        const elevationData = getElevationFromExtendedData(placemark);
         
         // Получение LineString
         pushGeometry(geometries, placemark, 'LineString')
@@ -17255,7 +17264,8 @@ function GeojsonParse(data) {
         }
 
         // Получение высоты в properties (для geojson созданных в qgis)
-        const elevationData = feature.properties.ELEV;
+        const properties = feature.properties;
+        const elevationData = properties.ELEV ?? properties.elevation ?? properties.elevationStart ?? undefined;
         const elevation = defineElevation(elevationData, firstPoint, contours)
 
         // ПОЛИГОН
@@ -17289,22 +17299,11 @@ function GeojsonParse(data) {
     return contours
 }
 
-// Функция нахождения параметра ELEV в ExtendedData в KML (формат сохранения высоты у QGIS)
-function getElevationFromExtendedData(placemark) {
-    const simpleData = placemark.getElementsByTagName("SimpleData");
-    for (const data of simpleData) {
-        if (data.getAttribute("name") === "ELEV") {
-            return data.textContent;
-        }
-    }
-    return undefined;
-}
-
 // Здесь выбирается значение для ключа высоты в словаре
 function defineElevation(elevationData, firstPoint, contours) {
     const elevation = elevationData !== undefined
-            ? Number(elevationData)               // Если был найден ELEV, то преобразуем его в число
-            : (Math.round(firstPoint[2] ?? 0));   // если нет ELEV — берем высоту из третьего числа координат
+            ? parseInt(elevationData)                     // Если ELEV был найден, то преобразуем его в число
+            : (Math.round(firstPoint[2] ?? 0));           // если нет ELEV — берем высоту из третьего числа координат
     if (!contours[elevation]) {contours[elevation] = []}; // Заодно создаем ключ высоты в contours, если такой высоты еще нет
     return elevation
 }

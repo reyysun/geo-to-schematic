@@ -77,7 +77,7 @@
       transition: opacity 0.2s;
 
       width: max-content;        /* Автоширина по содержимому */
-      max-width: 600px;          /* Ограничение по максимуму (по желанию) */
+      max-width: 650px;          /* Ограничение по максимуму (по желанию) */
       white-space: normal;       /* Разрешить перенос строк */
       box-sizing: border-box;    /* Учитывать padding в расчётах ширины */
     }
@@ -96,9 +96,12 @@
     <div class="title">GeoToSchematic</div>
   </div>
 
-  <div style="margin-top: 25px; margin-bottom: 15px;">
-    Convert KML and GeoJSON files into Minecraft schematics using BuildTheEarth projection!<br>
-    Elevation handling is supported.
+  <div style="margin-top: 25px; margin-bottom: 15px; line-height: 1.5;">
+    <div>Convert <b>KML and GeoJSON</b> files into <b>Minecraft schematics</b> using BuildTheEarth projection!</div>
+    <div style="font-size: 15px;">
+      Elevation handling is supported. 
+      All elements that don't have an elevation specified will be positioned at Y level 0.
+    </div>
   </div>
 
   <div id="status" style="margin-top: 25px; margin-bottom: 10px; text-align: left; font-weight: bold;">
@@ -124,7 +127,7 @@
       <input id="blockId" type="text" class="nicebox" value="diamond_block"/>
       <span class="tooltip">❔
         <span class="tooltip-text">
-          The block used for lines and points in the schematic.
+          The block used in schematic.
         </span>
       </span>
     </div>
@@ -134,9 +137,12 @@
       <input id="doYOffset" type="text" class="nicebox" value="0" style="width: 40px;"/>
       <span class="tooltip">❔
         <span class="tooltip-text">
-          On some BTE servers, the Y level may not match the actual elevation.<br>
-          You can set how much objects will be offset vertically from the Y levels they're supposed to be on.<br>
-          For example, this value has to be "-2016" for Italy schematics, because Y level -2016 equals real elevation 0 on BTE Italia.<br>
+          How far the outlines should be offset vertically from the Y levels
+          they were originally intended to be on. This affects the entire schematic.<br>
+          This is necessary for some BTE servers where the Y level
+          doesn't match the real-world elevation.
+          For example, for Italy schematics, this value should be set to -2016
+          because Y level -2016 equals real-world elevation 0 on BTE Italia server.
         </span>
       </span>
     </div>
