@@ -17242,68 +17242,94 @@ function KMLParse(data) {
 // Geojson
 function GeojsonParse(data) {
 
-    const file = JSON.parse(data);
     const contours = {};
-    const features = file.features;
 
-    // Обрабатываем каждую фигуру в features
-    for (const feature of features) {
+    // Функция, принимающая геометрии (feature.geometry) и пушащая координаты из них в contours.
+    // (contours[elevation].push(coords))
+    function getCoordsOfFeature(geometry, featureProps) {
 
-        const featureCoordinates = feature.geometry.coordinates;
-        if (!featureCoordinates) continue;
-        const featureType = feature.geometry.type;
-
-        // Если объект - линия/точка, то [[координата]]
-        let isPoly = false;
-        let firstPoint = featureCoordinates[0];
+        const featureType = geometry.type;
+        const featureCoordinates = geometry.coordinates;
         
-        // Если же полигон, то [[[координата]]]
-        if (featureType === 'Polygon') {
-            isPoly = true;
-            firstPoint = featureCoordinates[0][0]
+        // Нахождение высоты в свойствах feature, если они есть
+        let elevationData = undefined;
+        if (featureProps) {
+          elevationData = 
+            featureProps.ELEV ?? 
+            featureProps.elevation ?? 
+            featureProps.elevationStart ?? 
+            undefined;
         }
 
-        // Получение высоты в properties (для geojson созданных в qgis)
-        const properties = feature.properties;
-        const elevationData = properties.ELEV ?? properties.elevation ?? properties.elevationStart ?? undefined;
-        const elevation = defineElevation(elevationData, firstPoint, contours)
+        let coords
 
-        // ПОЛИГОН
-        if (isPoly) {
+        // coords надо привести к виду coords = [ [ [lat,lon],[lat,lon] ],[ [lat,lon] ] ]
+        switch (featureType) {
 
-            // Оставляем в списке координат точек всё кроме высоты
-            const lines = featureCoordinates.map(
-                line => removeThirdParameter(line));
+            case "Polygon":
+                coords = featureCoordinates;
+                break
+            
+            case "LineString": 
+                coords = [ featureCoordinates ];
+                break
+            
+            case "Point":
+                coords = [ [featureCoordinates] ];
+                break
 
-            // Перебираем каждый полигон и пушим его в словарь
-            for (let i = 0; i < lines.length; i++) {
-                contours[elevation].push(lines[i])
-            }
+            case "MultiPolygon":
+                coords = featureCoordinates.flatMap(
+                    poly => poly);
+                break
+            
+            case "MultiLineString":
+                coords = featureCoordinates;
+                break
+            
+            case "MultiPoint":
+                coords = featureCoordinates.map(point => [point]);
+                break
+            
+            case "GeometryCollection":
+                // В случае с коллекцией геометрий просто повторяем эту функцию для каждой вложенной геометрии
+                geometry.geometries.forEach(g => {
+                    getCoordsOfFeature(g, featureProps);
+                })
+                return
+            
         }
+        if (!coords) { return }
 
-        // ЛИНИЯ/ТОЧКА
-        else {
+        // Подтверждаем полученную из свойств elevationData, 
+        // либо берем высоту из координат, если elevationData не определен
+        const elevation = defineElevation(elevationData, coords[0][0], contours)
 
-            let geometry
+        // Удаляем 3 параметр из координат каждого объекта и пушим в словарь
+        for (let i = 0; i < coords.length; i++) {
 
-            if (featureType === 'LineString') {
-            geometry = removeThirdParameter(featureCoordinates);
-            } else if (featureType == 'Point') {
-            geometry = removeThirdParameter([featureCoordinates]);
-            }
+          clearedCoords = removeThirdParameter(coords[i])
+          contours[elevation].push(clearedCoords)
 
-            contours[elevation].push(geometry);
         }
+        
     }
 
+    const file = JSON.parse(data);
+    const features = file.features;
+
+    for (const feature of features) {
+        getCoordsOfFeature(feature.geometry, feature.properties)
+    }
     return contours
+    
 }
 
 // Здесь выбирается значение для ключа высоты в словаре
 function defineElevation(elevationData, firstPoint, contours) {
     const elevation = elevationData !== undefined
             ? parseInt(elevationData)                     // Если ELEV был найден, то преобразуем его в число
-            : (Math.round(firstPoint[2] ?? 0));           // если нет ELEV — берем высоту из третьего числа координат
+            : (Math.round(firstPoint[2] ?? 0));           // если нет ELEV — берем высоту из третьего числа координат, либо 0
     if (!contours[elevation]) {contours[elevation] = []}; // Заодно создаем ключ высоты в contours, если такой высоты еще нет
     return elevation
 }
