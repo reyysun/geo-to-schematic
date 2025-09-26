@@ -20,12 +20,12 @@
 
 (Where key - height, value - array of geometric objects (Points, LineStrings and Polygons)
 */
+const elevationNames = ["ele","elev","elevation","elevationstart"]
 
 // KML
 function KMLParse(data) {
     const xml = new DOMParser().parseFromString(data, "text/xml"); 
 
-    const elevationNames = ["elev","elevation","elevationstart"]
     const contours = {};
     let geometries = [];
 
@@ -136,14 +136,16 @@ function GeojsonParse(data) {
         const featureType = geometry.type;
         const featureCoordinates = geometry.coordinates;
         
-        // Нахождение высоты в свойствах feature, если они есть
+        // Нахождение свойства высоты в featureProps
         let elevationData = undefined;
         if (featureProps) {
-          elevationData = 
-            featureProps.ELEV ?? 
-            featureProps.elevation ?? 
-            featureProps.elevationStart ?? 
-            undefined;
+            // пробегаем по всем ключам объекта
+            for (const key of Object.keys(featureProps)) {
+                if (elevationNames.includes(key.toLowerCase())) {
+                    elevationData = featureProps[key];
+                    break;
+                }
+            }
         }
 
         let coords
