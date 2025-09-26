@@ -9,15 +9,34 @@
 
   <style>
     body {
-      background-image: url('images/sitebg.webp');
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      background-size: cover;
       background-color: #2c2c2c;
       margin-left: 20px;
       margin-top: 25px;
       color: #f5f5f5;
       font-family: sans-serif;
+      position: relative;
+      z-index: 0;
+    }
+
+    /* фоновое изображение через псевдоэлемент */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('images/sitebg.webp');
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
+      opacity: 0; /* изначально невидимо */
+      transition: opacity 2s ease-in;
+      z-index: -1; /* чтобы было за контентом */
+    }
+
+    body.bg-loaded::before {
+      opacity: 1; /* проявление только фона */
     }
     .title {
       display: inline-block;
@@ -44,13 +63,15 @@
       display: inline-block;
       font-family: inherit;
     }
-
-    a:link {
-      color: mediumturquoise;
-      text-decoration: underline;
+    .nicebox:disabled {
+      color: #8f8f8f;
     }
-    a:visited {
-      color: mediumpurple;
+    .chatcommand {
+      color: #ff5500
+    }
+
+    a:link, a:visited {
+      color: mediumturquoise;
       text-decoration: underline;
     }
 
@@ -77,7 +98,7 @@
       transition: opacity 0.2s;
 
       width: max-content;        /* Автоширина по содержимому */
-      max-width: 650px;          /* Ограничение по максимуму (по желанию) */
+      max-width: 620px;          /* Ограничение по максимуму (по желанию) */
       white-space: normal;       /* Разрешить перенос строк */
       box-sizing: border-box;    /* Учитывать padding в расчётах ширины */
     }
@@ -101,10 +122,9 @@
     <div style="font-size: 15px;">
       Elevation handling is supported. 
       All elements that don't have an elevation specified will be positioned at Y level 0.
-    </div>
   </div>
 
-  <div id="status" style="margin-top: 25px; margin-bottom: 10px; text-align: left; font-weight: bold;">
+  <div id="status" style="margin-top: 20px; margin-bottom: 10px; text-align: left; font-weight: bold;">
     Import your file:
   </div>
 
@@ -112,40 +132,29 @@
     <input id="file" class="nicebox" type="file" accept=".kml,.geojson,.json" onchange="upload(this)" multiple/><br/>
   </div>
 
-  <div id="pasteexplanation" 
-  style="margin-top: 5px; margin-bottom: 5px; font-weight: bold; font-size: small; color: mediumseagreen"></div>
-  <div id="pasteexplanation2"
-  style="font-weight: bold; font-size: small; color: mediumseagreen"></div>
-
   <ul id="downloads"></ul>
 
   <div class="nicebox" style="display: inline-block; font-family: inherit">
 
     <!--Block ID-->
     <div style="margin-bottom: 10px; margin-top: 5px;">
-      <label for="blockId">Block ID:</label>
-      <input id="blockId" type="text" class="nicebox" value="diamond_block"/>
-      <span class="tooltip">❔
-        <span class="tooltip-text">
-          The block used in schematic.
-        </span>
-      </span>
+      <label for="blockId">Contours block ID:</label>
+      <input id="blockId" type="text" class="nicebox" value="diamond_block" style="width: 140px;"/>
     </div>
+    
     <!--Y Offset-->
     <div style="margin-top: 10px; margin-bottom: 10px;">
       <label for="doYOffset">Y Offset:</label>
       <input id="doYOffset" type="text" class="nicebox" value="0" style="width: 40px;"/>
       <span class="tooltip">❔
         <span class="tooltip-text">
-          How far the outlines should be offset vertically from the Y levels
-          they were originally intended to be on. This affects the entire schematic.<br>
-          This is necessary for some BTE servers where the Y level
-          doesn't match the real-world elevation.
-          For example, for Italy schematics, this value should be set to -2016
-          because Y level -2016 equals real-world elevation 0 on BTE Italia server.
+          Vertical offset for the entire schematic.<hr>
+          In case of elevation-specified files, this setting is needed for some BTE servers where
+          the Y level doesn't match the real-world elevation (like -2016 for BTE Italia).
         </span>
       </span>
     </div>
+
     <!--Connect vertices-->
     <div style="margin-top: 10px; margin-bottom: 10px;">
       <label>
@@ -158,10 +167,19 @@
         </span>
       </span>
     </div>
-    
-    
 
+    <hr style="border: 1px solid #555;">
+
+    <div style="margin-bottom: 10px; margin-top: 5px;">
+      <label for="schematicver-select">Output format:</label>
+      <select class="nicebox" id="schematicver-select">
+        <option value="SpongeV3">Sponge schematic (1.13+)</option>
+        <option value="Legacy">Legacy schematic (1.12.2)</option>
+      </select>
+    </div>
+    
   </div>
+
   <input type="file" id="fileInput" accept=".kml,.geojson" style="display: none;" />
   <div style="margin-top: 20px; font-size: 14px;">
     Privacy notice: all files are processed by your local machine and aren't uploaded to any server.
@@ -170,14 +188,16 @@
 
 
   <script>
+    window.addEventListener('load', () => {
+      document.body.classList.add('bg-loaded');
+    });
     // ЛОГИКА САЙТА
     const fileInput = document.getElementById('fileInput');
     const statusText = document.getElementById('status');
-    const explanationText = document.getElementById('pasteexplanation');
-    const explanationText2 = document.getElementById('pasteexplanation2');
     const blockIdInput = document.getElementById('blockId');
     const doConnectionsBox = document.getElementById('doConnections');
-    const doYOffsetInput = document.getElementById('doYOffset')
+    const doYOffsetInput = document.getElementById('doYOffset');
+    const formatBox = document.getElementById('schematicver-select');
 
     function uploadFile(file) {
       console.log('Processing ' + file.name);
@@ -198,55 +218,65 @@
         }
 
         const blockId = blockIdInput.value;
-        console.log('blockId: ',blockId);
         const doConnections = doConnectionsBox.checked;
-        console.log('doConnections: ',doConnections);
         const yOffset = parseInt(doYOffsetInput.value);
-        console.log('YOffset: ',yOffset);
+        const schemVersion = formatBox.value;
 
-        if ( !blockId || Number.isNaN(yOffset) ) {
-          alert('Please enter correct block ID and Y offset');
+        console.log('blockId: ',blockId);
+        console.log('doConnections: ',doConnections);
+        console.log('YOffset: ',yOffset);
+        console.log('schemVersion: ',schemVersion)
+
+        if ( !blockId || typeof blockId === 'number' || Number.isNaN(yOffset) ) {
+          alert('Please enter correct block ID and Y offset. Block ID can only be text');
           return
         }
 
         statusUpdate('Converting...', 'wheat')
-        
-        let result
-        try {
-          result = convertGeoData(fr.result, fileType, blockId, doConnections, yOffset)
-          console.log('Successful conversion! Now doing download...')
-        } catch (err) {
-          if (err.message === "Schematic too big") {
-            statusUpdate(
-              `Hold on pal, you're trying to get too damn big schematic! How about splitting it into smaller ones?`, 'salmon'
-            )
+
+        setTimeout(() => {
+          let result
+          try {
+            result = convertGeoData(fr.result, fileType, blockId, doConnections, yOffset, schemVersion)
+            console.log('Successful conversion! Now doing download...')
+          } catch (err) {
+            if (err.message === "Schematic too big") {
+              statusUpdate(
+                `Hold on pal, you're trying to get too damn big schematic! 
+                How about splitting it into smaller ones?`, 'salmon'
+              )
+            }
+            else if (err.message === "Wrong block id") {
+              statusUpdate(`Wrong block ID, please use text IDs of blocks
+                            that are presented in 1.12.2`, 'salmon')
+            }
+            else { statusUpdate(
+              'Error while reading the file. Please make sure that your file is correct', 'salmon') }
+            console.log(err)
+            return
           }
-          else { statusUpdate(
-            'Error while reading the file. Please make sure that your file is correct', 'salmon') }
-          console.log(err)
-          return
-        }
 
-        if (~name.lastIndexOf('.')) {
-            name = name.substr(0, name.lastIndexOf('.'));
-        }
-    
-        name += '.schem';
-    
-        var blob = new Blob([result[0]], {type: 'application/nbt'}); // result[0] - это файл
-        var link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = name;
-        link.innerHTML = 'Download ' + name;
-        link.click();
-        var li = document.createElement('li');
-        li.appendChild(link);
-        li.appendChild(document.createTextNode(` (${result[1]})`)) // result[1] - это originalPoint
-        document.querySelector('#downloads').appendChild(li);
+          if (~name.lastIndexOf('.')) {
+              name = name.substr(0, name.lastIndexOf('.'));
+          }
+          
+          let ext;
+          if (schemVersion == "Legacy") { ext = '.schematic' } else { ext = '.schem' };
+          name += ext;
+      
+          var blob = new Blob([result[0]], {type: 'application/nbt'}); // result[0] - это файл
+          var link = document.createElement('a');
+          link.href = window.URL.createObjectURL(blob);
+          link.download = name;
+          link.innerHTML = 'Download ' + name;
+          link.click();
+          var li = document.createElement('li');
+          li.appendChild(link);
+          li.appendChild(document.createTextNode(` (${result[1].join(' ')})`)) // result[1] - это originalPoint
+          document.querySelector('#downloads').appendChild(li);
 
-        statusUpdate('Success!', 'MediumSeaGreen')
-        explanationText.textContent = "On a server, use «//paste -a -o» to correctly place the schematic."
-        explanationText2.textContent = "If you're using Litematica, set the schematic's placement origin to the coordinates below."
+          statusUpdate('Success!', 'MediumSeaGreen');
+        }, 0);
       }
       fr.readAsText(file);
     }

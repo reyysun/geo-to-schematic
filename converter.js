@@ -10,8 +10,10 @@ const terraconvert = require('@bte-germany/terraconvert');
 const nbt = require('prismarine-nbt')
 const zlib = require('zlib')
 const { KMLParse, GeojsonParse } = require('./geoparser')
+const Schematic = require('./schematicformats')
 
-function convertGeoData(geotext, fileType, blockId, doConnections, yOffset) {
+
+function convertGeoData(geotext, fileType, blockId, doConnections, yOffset, schemVersion) {
 
   // Преобразование координат в проекцию BTE и округление
   function getBTECoords(contours) {
@@ -45,8 +47,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections, yOffset) {
 
 
   // Создание схематики
-  function createSchematic(btecoords, blockId, doConnections, yOffset) {
-      const TagType = nbt.TagType
+  function createSchematic(btecoords, blockId, doConnections, yOffset, schemVersion) {
 
       // Получаем все координаты
       const allCoords = Object.entries(btecoords).flatMap(([elev, lines]) =>
@@ -78,9 +79,9 @@ function convertGeoData(geotext, fileType, blockId, doConnections, yOffset) {
       const blockData = new Uint8Array(totalSize);
 
       const fullBlockId = "minecraft:" + blockId;
-      const palette = {
-        "minecraft:air": { type: nbt.TagType.Int, value: 0 },
-        [fullBlockId]: { type: nbt.TagType.Int, value: 1 }
+      const blockPalette = {
+        "minecraft:air": { type: 'int', value: 0 },
+        [fullBlockId]: { type: 'int', value: 1 }
       };
 
       // Обработка каждой высоты
@@ -117,51 +118,25 @@ function convertGeoData(geotext, fileType, blockId, doConnections, yOffset) {
       });
 
       const originPoint = [Math.ceil(minX), Math.ceil(minY) + yOffset, Math.ceil(minZ)]
+      const size = {'length': length, 'height': height, 'width': width};
 
-      // Создание схематика (Sponge Schematic v3) 
-      // (https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/schematic-3.md)
-      const schematic = {
-        type: TagType.Compound,
-        name: "",
-        value: {
-          Schematic: {
-            type: TagType.Compound,
-            name: "Schematic",
-            value: {
-              Version: { type: TagType.Int, value: 3 },
-              DataVersion: { type: TagType.Int, value: 3700 },
+      const schem = new Schematic(size,blockPalette,blockData,originPoint)
 
-              Width: { type: TagType.Short, value: length },
-              Height: { type: TagType.Short, value: height },
-              Length: { type: TagType.Short, value: width },
-
-              // Исходная точка схематики (//paste -a -o)
-              Offset: {
-                type: TagType.IntArray,
-                value: originPoint,
-              },
-
-              Metadata: { 
-                type: TagType.Compound, 
-                value: {
-                  Author: { type: TagType.String, value: "GeoToSchematic" },
-                  Name: { type: TagType.String, value: "BuildTheEarth schematic" }
-                } 
-              },
-              
-              Blocks: {
-                type: TagType.Compound, 
-                value: {
-                  Palette: { type: TagType.Compound, value: palette },
-                  Data: { type: TagType.ByteArray, value: blockData },
-                }
-              }
-            }
-          }
-        }
+      let nbtSchematic;
+      switch(schemVersion) {
+        case "SpongeV3":
+          nbtSchematic = schem.SpongeV3();
+          break
+        case "Legacy":
+          nbtSchematic = schem.Legacy();
+          break
+        default:
+          throw new Error;
       }
 
-      return [schematic, originPoint];
+      console.log(nbtSchematic)
+
+      return [nbtSchematic, originPoint];
   }
 
 
@@ -210,7 +185,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections, yOffset) {
   else if (fileType == 'geojson') {parsedData = GeojsonParse(geotext)}
 
   const contours = getBTECoords(parsedData);
-  const schematicResult = createSchematic(contours, blockId, doConnections, yOffset);
+  const schematicResult = createSchematic(contours, blockId, doConnections, yOffset, schemVersion);
   const schematic = schematicResult[0]; const originPoint = schematicResult[1];
   const nbtBuffer = nbt.writeUncompressed(schematic);
   const compressed = zlib.gzipSync(nbtBuffer);
