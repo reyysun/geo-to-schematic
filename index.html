@@ -22,8 +22,8 @@
     body::before {
       content: "";
       position: fixed;
-      top: 0;
-      left: 0;
+      bottom: 0;
+      right: 0;
       width: 100%;
       height: 100%;
       background-image: url('images/sitebg.webp');
@@ -234,49 +234,47 @@
 
         statusUpdate('Converting...', 'wheat')
 
-        setTimeout(() => {
-          let result
-          try {
-            result = convertGeoData(fr.result, fileType, blockId, doConnections, yOffset, schemVersion)
-            console.log('Successful conversion! Now doing download...')
-          } catch (err) {
-            if (err.message === "Schematic too big") {
-              statusUpdate(
-                `Hold on pal, you're trying to get too damn big schematic! 
-                How about splitting it into smaller ones?`, 'salmon'
-              )
-            }
-            else if (err.message === "Wrong block id") {
-              statusUpdate(`Wrong block ID, please use text IDs of blocks
-                            that are presented in 1.12.2`, 'salmon')
-            }
-            else { statusUpdate(
-              'Error while reading the file. Please make sure that your file is correct', 'salmon') }
-            console.log(err)
-            return
+        let result
+        try {
+          result = convertGeoData(fr.result, fileType, blockId, doConnections, yOffset, schemVersion)
+          console.log('Successful conversion! Now doing download...')
+        } catch (err) {
+          if (err.message === "Schematic too big") {
+            statusUpdate(
+              `Hold on pal, you're trying to get too damn big schematic! 
+              How about splitting it into smaller ones?`, 'salmon'
+            )
           }
-
-          if (~name.lastIndexOf('.')) {
-              name = name.substr(0, name.lastIndexOf('.'));
+          else if (err.message === "Wrong block id") {
+            statusUpdate(`Wrong block ID, please use text IDs of blocks
+                          that are presented in 1.12.2`, 'salmon')
           }
-          
-          let ext;
-          if (schemVersion == "Legacy") { ext = '.schematic' } else { ext = '.schem' };
-          name += ext;
-      
-          var blob = new Blob([result[0]], {type: 'application/nbt'}); // result[0] - это файл
-          var link = document.createElement('a');
-          link.href = window.URL.createObjectURL(blob);
-          link.download = name;
-          link.innerHTML = 'Download ' + name;
-          link.click();
-          var li = document.createElement('li');
-          li.appendChild(link);
-          li.appendChild(document.createTextNode(` (${result[1].join(' ')})`)) // result[1] - это originalPoint
-          document.querySelector('#downloads').appendChild(li);
+          else { statusUpdate(
+            'Error while reading the file. Please make sure that your file is correct', 'salmon') }
+          console.log(err)
+          return
+        }
 
-          statusUpdate('Success!', 'MediumSeaGreen');
-        }, 0);
+        if (~name.lastIndexOf('.')) {
+            name = name.substr(0, name.lastIndexOf('.'));
+        }
+        
+        let ext;
+        if (schemVersion == "Legacy") { ext = '.schematic' } else { ext = '.schem' };
+        name += ext;
+    
+        var blob = new Blob([result[0]], {type: 'application/nbt'}); // result[0] - это файл
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = name;
+        link.innerHTML = 'Download ' + name;
+        link.click();
+        var li = document.createElement('li');
+        li.appendChild(link);
+        li.appendChild(document.createTextNode(` (${result[1].join(' ')})`)) // result[1] - это originalPoint
+        document.querySelector('#downloads').appendChild(li);
+
+        statusUpdate('Success!', 'MediumSeaGreen');
       }
       fr.readAsText(file);
     }
