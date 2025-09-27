@@ -1,3 +1,7 @@
+// Dictionary of all block presented in 1.12.2 and their numeric IDs
+// Credits to SchemToSchematic by PureGero for this list
+// https://github.com/PureGero/SchemToSchematic/blob/master/schemtoschematic.js
+
 var blocksNamespace = {
 'minecraft:air':0,
 'minecraft:stone':16,
