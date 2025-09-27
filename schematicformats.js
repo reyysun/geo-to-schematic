@@ -1,3 +1,5 @@
+const blocksNamespace = require('./blockids')
+
 class Schematic {
   constructor(size, palette, blockdata, origin) {
     this.size = size;
@@ -50,6 +52,39 @@ class Schematic {
   }
 
   Legacy() {
+
+    const blockspalette = [];
+
+    for (const key in this.palette) {
+      blockspalette[this.palette[key].value] = key;
+    }
+
+    let blocks = [];
+    let data = [];
+
+    for (let i=0; i < this.blockdata.length; i++) {
+      let varInt = 0;
+      let varIntLength = 0;
+      varInt |= (this.blockdata[i] & 127) << (varIntLength++ * 7);
+                
+      if ((this.blockdata[i] & 128) == 128) {
+        continue;
+      }
+      
+      let blockId;
+      if (blockspalette[varInt] in blocksNamespace) {
+        blockId = blocksNamespace[blockspalette[varInt]];
+      } else {
+        throw new Error('Wrong block id');
+      }
+      
+      blocks.push(blockId >> 4);
+      data.push(blockId & 0xF);
+      
+      varIntLength = 0;
+      varInt = 0;
+    }
+
     return {
       type: 'compound',
       name: "Schematic",
@@ -60,8 +95,8 @@ class Schematic {
 
         Materials: { type: 'string', value: 'Alpha' },
 
-        Blocks: { type: 'byteArray', value: this.blockdata },
-        Data: { type: 'byteArray', value: this.blockdata },
+        Blocks: { type: 'byteArray', value: blocks },
+        Data: { type: 'byteArray', value: data },
 
         WEOriginX: { type: 'int', value: this.origin[0] },
         WEOriginY: { type: 'int', value: this.origin[1] },
