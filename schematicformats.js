@@ -80,9 +80,6 @@ class Schematic {
       
       blocks.push(blockId >> 4);
       data.push(blockId & 0xF);
-      
-      varIntLength = 0;
-      varInt = 0;
     }
 
     return {

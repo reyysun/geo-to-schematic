@@ -72,7 +72,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections, yOffset, sche
       const height = maxY - minY + 1;
 
       const totalSize = width * height * length;
-      if (width > 10000 || length > 10000 || height > 1500 || totalSize > 5_000_000_000) {
+      if (width > 32767 || length > 32767 || height > 2000 || totalSize > 5_000_000_000) {
         throw new Error("Schematic too big");
       }
 
