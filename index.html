@@ -227,7 +227,7 @@
         console.log('YOffset: ',yOffset);
         console.log('schemVersion: ',schemVersion)
 
-        if ( !blockId || typeof blockId === 'number' || Number.isNaN(yOffset) ) {
+        if ( !blockId || Number.isNaN(yOffset) ) {
           alert('Please enter correct block ID and Y offset. Block ID can only be text');
           return
         }
