@@ -37,14 +37,16 @@ The elevation of a feature in KML or GeoJSON is specified when at least one of t
 (Свойства определяются в поле SimpleData для KML и properties для GeoJSON).
 
 ## Credits
-* [TerraSketch](https://github.com/Codestian/TerraSketch) for the logic of converting an array of coordinates into a schematic. Use TerraSketch for outlining in BTE projection!
-* [SchemToSchematic](https://github.com/PureGero/SchemToSchematic) for the overall design of the page, and also for the logic of converting block data to
+* [TerraSketch](https://github.com/Codestian/TerraSketch) for the idea of converting geodata files into schematic. My project was originally started to develop this idea. Use TerraSketch for outlining in BTE projection!
+* [SchemToSchematic](https://github.com/PureGero/SchemToSchematic) for the overall design of the page, and also for the list of minecraft 1.12.2 blocks ids
 ## Modules used
 1. [@bte-germany/terraconvert](https://github.com/Nachwahl/terraconvert) - for converting from latlng to minecraft coordinates
 2. [prismarine-nbt](https://github.com/PrismarineJS/prismarine-nbt) - for writing NBT data
-3. [browserify](https://browserify.org/) - to compile node.js modules for the browser
+3. [fflate](https://github.com/101arrowz/fflate) - for NBT compression, and as a lightweight replacement for zlib
+4. [browserify](https://browserify.org/) - to compile node.js modules for the browser
+5. [terser](https://github.com/terser/terser) - to minify the browserify bundle
 ## How to build
-This project uses [Browserify](https://browserify.org/) to convert `converter.js` into a browser-ready `ultraconverter.js`, which is used by `index.html`. You can look up for ultraconverter in gh-pages branch, but it's 38k lines long, so there's no need to edit that file manually — instead, make changes in `converter.js`, then bundle it using Browserify. Here's how:
+This project uses [Browserify](https://browserify.org/) to convert `converter.js` into a browser-ready bundle, and [terser](https://github.com/terser/terser) to minify this bundle. You can look up for `ultraconverter.min.js` in gh-pages branch, but it's very large and unreadable. Instead, make changes in `converter.js` and related files, and then bundle it.
 1. Clone the main repository
 ```
 git clone https://github.com/reyysun/geo-to-schematic
@@ -58,5 +60,4 @@ npm install
 ```
 npm run build
 ```
-This will run `browserify converter.js -o ultraconverter.js` and build ultraconverter.js.
-Then you can run `index.html` on localhost.
+This will build `ultraconverter.js` and minified `ultraconverter.min.js`. Then you can run `index.html` on localhost.
