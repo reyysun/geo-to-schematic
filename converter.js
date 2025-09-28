@@ -134,8 +134,6 @@ function convertGeoData(geotext, fileType, blockId, doConnections, yOffset, sche
           throw new Error;
       }
 
-      console.log(nbtSchematic)
-
       return [nbtSchematic, originPoint];
   }
 
@@ -187,6 +185,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections, yOffset, sche
   const contours = getBTECoords(parsedData);
   const schematicResult = createSchematic(contours, blockId, doConnections, yOffset, schemVersion);
   const schematic = schematicResult[0]; const originPoint = schematicResult[1];
+  console.log('NBT done, now compressing...')
   const nbtBuffer = nbt.writeUncompressed(schematic);
   const compressed = fflate.gzipSync(nbtBuffer);
 
