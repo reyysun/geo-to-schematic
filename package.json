@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "converter.js",
   "scripts": {
-    "build": "browserify converter.js -o ultraconverter.js && npm run minify",
+    "build": "browserify converter.js -o ultraconverter.js --ignore zlib && npm run minify",
     "minify": "npx terser ultraconverter.js -o ultraconverter.min.js --compress --mangle",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
