@@ -53,15 +53,22 @@ class Schematic {
 
   Legacy() {
 
-    const blockspalette = [];
-
+    const paletteMap = {};
     for (const key in this.palette) {
-      blockspalette[this.palette[key].value] = key;
+      const varInt = this.palette[key].value;
+      const blockId = blocksNamespace[key];
+      if (blockId === undefined) {
+        console.log(`ERROR: can't find block ${key}`)
+        throw new Error(`Wrong block id`);
+      }
+      paletteMap[varInt] = blockId;
     }
 
-    let blocks = [];
-    let data = [];
+    const total = this.size.width * this.size.length * this.size.height;
+    const blocks = new Uint8Array(total);
+    const data = new Uint8Array(total);
 
+    let idx = 0;
     for (let i=0; i < this.blockdata.length; i++) {
       let varInt = 0;
       let varIntLength = 0;
@@ -71,15 +78,11 @@ class Schematic {
         continue;
       }
       
-      let blockId;
-      if (blockspalette[varInt] in blocksNamespace) {
-        blockId = blocksNamespace[blockspalette[varInt]];
-      } else {
-        throw new Error('Wrong block id');
-      }
-      
-      blocks.push(blockId >> 4);
-      data.push(blockId & 0xF);
+      const blockId = paletteMap[varInt];
+
+      blocks[idx] = blockId >> 4;
+      data[idx] = blockId & 0xF;
+      idx++
     }
 
     return {
