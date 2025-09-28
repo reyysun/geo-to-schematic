@@ -8,7 +8,7 @@
 
 const terraconvert = require('@bte-germany/terraconvert');
 const nbt = require('prismarine-nbt')
-const zlib = require('zlib')
+const fflate = require('fflate')
 const { KMLParse, GeojsonParse } = require('./geoparser')
 const Schematic = require('./schematicformats')
 
@@ -188,7 +188,7 @@ function convertGeoData(geotext, fileType, blockId, doConnections, yOffset, sche
   const schematicResult = createSchematic(contours, blockId, doConnections, yOffset, schemVersion);
   const schematic = schematicResult[0]; const originPoint = schematicResult[1];
   const nbtBuffer = nbt.writeUncompressed(schematic);
-  const compressed = zlib.gzipSync(nbtBuffer);
+  const compressed = fflate.gzipSync(nbtBuffer);
 
   return [compressed, originPoint]
 
