@@ -11,7 +11,6 @@ const nbt = require('prismarine-nbt')
 const fflate = require('fflate')
 const { KMLParse, GeojsonParse } = require('./geoparser')
 const Schematic = require('./schematicformats')
-const interpolateContours = require('./interpolation')
 const fillTerrain = require('./fillterrain.js')
 
 
