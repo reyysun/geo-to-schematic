@@ -93,6 +93,9 @@
     .chatcommand {
       color: #ff5500
     }
+    .nicehr {
+      border: 1px solid #555;
+    }
 
     a:link, a:visited {
       color: mediumturquoise;
@@ -169,10 +172,10 @@
   <div style="margin-top: 10px; display: flex;"> 
     <div class="nicebox" style="margin-bottom: auto;">
       <div class="setting-title">
-        🛠️Base settings
+        🛠️ Base settings
       </div>
       
-      <hr style="border: 1px solid #555;">
+      <hr class="nicehr">
 
       <!--Block ID-->
       <div style="margin-bottom: 10px; margin-top: 5px;">
@@ -180,14 +183,14 @@
         <input id="blockId-input" type="text" class="nicebox" value="diamond_block" style="width: 110px;"/>
       </div>
 
-      <hr style="border: 1px solid #555;">
+      <hr class="nicehr">
       <div>
         <label class="setting-title">↔️ Offset</label>
         <span class="tooltip">❔
           <span class="tooltip-text">
             Schematic's origin offset.<hr>
-            Output schematics already have an origin point aligned with their intended Minecraft coordinates according to the BTE projection, 
-            so usually you don't need to change it. However, some BTE servers use an additional world offset 
+            Output schematics are already have an origin point on their intended BTE-projected Minecraft coordinates, 
+            so usually you don't need to apply the offset. However, some BTE servers use an additional world offset 
             that should be taken into account.
           </span>
         </span>
@@ -224,10 +227,10 @@
 
       </div>
 
-      <hr style="border: 1px solid #555;">
+      <hr class="nicehr">
 
       <div>
-        <label class="setting-title">Output format</label>
+        <label class="setting-title">📤 Output format</label>
       </div>
 
       <!--Output format-->
@@ -243,10 +246,10 @@
     <div style="display: grid; vertical-align: top; margin-left: 10px;">
       <div class="nicebox" style="margin-bottom: auto; vertical-align: top;">
         <div class="setting-title">
-          ⛰️Terrain settings
+          ⛰️ Terrain settings
         </div>
-        <div style="margin-top: 5px;">Features for topographic map files</div>
-        <hr style="border: 1px solid #555;">
+
+        <hr class="nicehr">
 
         <div style="margin-top: 15px; margin-bottom: 15px;">
           <label>
@@ -270,9 +273,10 @@
           </label>
           <span class="tooltip">❔
             <span class="tooltip-text">
-              Fill gaps between contour lines in a topographic schematic using a scanline fill algorithm.<hr>
-              For this to work properly, the vertical spacing between contours should not exceed 1 meter. 
-              Inaccuracies are possible, requiring manual correction.
+              Fill gaps between contour lines in a topographic schematic using the scanline fill algorithm.<hr>
+              For this to work, the vertical spacing between contours should not exceed 1 meter. 
+              There may be some misplaced blocks on areas with sparse contour lines, 
+              but they're usually very easy to spot and fix.
             </span>
           </span>
         </div>
