@@ -374,6 +374,7 @@
           result = convertGeoData(
             fr.result, fileType, blockId, offset, schemVersion, consElev, doFill, fillBlockId)
           console.log('Successful conversion! Now doing download...')
+
         } catch (err) {
           if (err.message === "Schematic too big") {
             statusUpdate(
@@ -385,6 +386,11 @@
             // This can occur only if Legacy schematic selected
             statusUpdate(`Wrong block ID, please use text IDs of blocks
                           that are presented in 1.12.2`, 'salmon')
+          }
+          else if (err.message === "temporary cant do legacy with fill") {
+            statusUpdate(`Sorry, it's currently not possible to apply 
+                          terrain fill to Legacy schematics. Please use 
+                          Sponge schematics.`, 'salmon')
           }
           else { statusUpdate(
             'Unknown error =(', 'salmon') }

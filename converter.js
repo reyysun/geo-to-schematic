@@ -210,6 +210,10 @@ function convertGeoData(geotext, fileType, blockId, offset, schemVersion, consEl
   }
 
   // This is where it all begins...
+  
+  if (schemVersion === 'Legacy' && doFill) 
+    // извините я хз как это починить пока что
+    { throw new Error("temporary cant do legacy with fill") }
   let parsedData
 
   if (fileType == 'kml') {parsedData = KMLParse(geotext)}
