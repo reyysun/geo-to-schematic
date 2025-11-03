@@ -1,0 +1,41 @@
+{
+    "languageCode": "en",
+
+    "title": "GeoToSchemtic",
+
+    "description": "Convert <b>KML and GeoJSON</b> files into <b>Minecraft schematics</b> using BuildTheEarth projection!",
+
+    "status_import": "Import your file",
+    "status_converting": "Converting...",
+    "status_success": "Success! Use \"//paste -a -o\" to correctly place your schematic",
+    "status_error": "Error while reading the file. Please make sure that your file is correct",
+    "status_error_toobig": "Hold on, your file is too big for one schematic! How about splitting it into smaller ones?",
+    "status_error_wronglegacyid": "Wrong block ID, please use text IDs of blocks that are presented in 1.12.2",
+
+    "basesettings": "🛠️ Base settings",
+    "blockid": "Contours block ID:",
+    "offset": "↔️ Offset",
+    "offset_tooltip": "Additional schematic offset.<hr>Output schematic files already contain BTE-projected coordinates that //paste -o uses to correctly place the schematic. However, some BTE servers use an additional world offset. This world offset should be specified in this section. Most servers don't have an additional offset, and you don't need to change anything here.",
+    "offset_preset": "Offset preset",
+    "offset_preset1": "BTE ASEAN offset",
+    "offset_preset2": "BTE Italy offset",
+    "offset_preset3": "BTE Romania+Moldova offset",
+    "offset_preset4": "BTE Balkans offset",
+    "outputformat": "📤 Output format",
+    "spongeschematic": "Sponge schematic (1.13+)",
+    "legacyschematic": "Legacy schematic (1.7-1.12.2)",
+
+    "terrainsettings": "⛰️ Terrain settings",
+    "conselevation": "Consider elevation",
+    "conselevation_tooltip": "Place objects at their expected height in the schematic based on their altitude value specified in the kml/geojson file.<hr>If unchecked, all objects will be on Y level 0, regardless of their altitude values.",
+    "fillterrain": "Fill terrain",
+    "fillterrain_tooltip": "Fill gaps between contour lines in a topographic schematic using the scanline fill algorithm.<hr>This works with both enclosed and open contours. The only requirement is a 1 meter contour interval. There may be some missing or misplaced blocks, but they're easy to spot and fix.",
+    "fillingblockid": "Filling block ID:",
+    
+    "privacynotice": "Privacy notice: all files are processed by your local machine<br>and aren't uploaded to any server.",
+    "sourcecode": "Source code",
+
+    "error_wrongextension": "Only .kml and .geojson files are supported",
+    "error_wrongid": "Please enter a valid Minecraft block ID. Only text IDs are supported",
+    "error_offset": "Please enter correct offset values. Offset values can only be integers"
+}
