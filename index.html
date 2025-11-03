@@ -80,6 +80,10 @@
     .nicebox:disabled {
       color: #8f8f8f;
     }
+    .nicetext {
+      color: lightcyan;
+      text-decoration: underline;
+    }
     .nicebutton {
       background-color: #525252;
       color: #f0f0f0;
@@ -89,6 +93,16 @@
       margin-top: 5px;
       display: inline-block;
       font-family: inherit;
+    }
+    .langswitcher {
+      position: fixed;
+      display: flex;
+      bottom: 1%;
+      right: 1%;
+    }
+    .langbutton {
+      width: 30px;
+      height: 30px;
     }
     .chatcommand {
       color: #ff5500
@@ -155,8 +169,7 @@
     <div class="title">GeoToSchematic</div>
   </div>
 
-  <div style="margin-top: 25px; margin-bottom: 15px; line-height: 1.5;">
-    <div>Convert <b>KML and GeoJSON</b> files into <b>Minecraft schematics</b> using BuildTheEarth projection!</div>
+  <div data-i18n="description" style="margin-top: 25px; margin-bottom: 15px; line-height: 1.5;">
   </div>
 
   <div>
@@ -171,27 +184,23 @@
 
   <div style="margin-top: 10px; display: flex;"> 
     <div class="nicebox" style="margin-bottom: auto;">
-      <div class="setting-title">
-        🛠️ Base settings
-      </div>
+
+      <!--Base settings-->
+      <div class="setting-title" data-i18n="basesettings"> </div>
       
       <hr class="nicehr">
 
-      <!--Block ID-->
+      <!--Contour block ID-->
       <div style="margin-bottom: 10px; margin-top: 5px;">
-        <label for="blockId-input">Contours block ID:</label>
+        <label for="blockId-input" data-i18n="blockid"></label>
         <input id="blockId-input" type="text" class="nicebox" value="diamond_block" style="width: 110px;"/>
       </div>
 
       <hr class="nicehr">
       <div>
-        <label class="setting-title">↔️ Offset</label>
+        <label class="setting-title" data-i18n="offset"></label>
         <span class="tooltip">❔
-          <span class="tooltip-text">
-            Schematic's origin offset.<hr>
-            Output schematics are already have an origin point on their intended BTE-projected Minecraft coordinates, 
-            so usually you don't need to apply the offset. However, some BTE servers use an additional world offset 
-            that should be taken into account.
+          <span class="tooltip-text" data-i18n="offset_tooltip">
           </span>
         </span>
       </div>
@@ -218,19 +227,24 @@
             <input id="doZOffset-input" type="text" class="nicebox" value="0" style="width: 70px;"/>
           </div>
         </div>
-        
-        <div id="bteOffsetsButtons" style="margin-left: auto; margin-right: 5px;">
-          <div><button id="offsetAsean" class="nicebutton">ASEAN offset</button></div>
-          <div><button id="offsetItaly" class="nicebutton">Italy offset</button></div>
-          <div><button id="offsetRomania" class="nicebutton">Romania offset</button></div>
-        </div>
 
+      </div>
+
+      <div style="margin-top:20px; margin-left: 5px;">
+        <label for="bteOffset-select" data-i18n="offset_preset" style="margin-bottom: 10px;"></label><br>
+        <select id="bteOffset-select" class="nicebox">
+          <option value="offsetNone">Default</option>
+          <option value="offsetAsean">BTE ASEAN</option>
+          <option value="offsetItaly">BTE Italia</option>
+          <option value="offsetBalkans">Team Balkans</option>
+          <option value="offsetRomania">BTE Romania+Moldova</option>
+        </select>
       </div>
 
       <hr class="nicehr">
 
       <div>
-        <label class="setting-title">📤 Output format</label>
+        <label class="setting-title" data-i18n="outputformat"></label>
       </div>
 
       <!--Output format-->
@@ -245,63 +259,49 @@
 
     <div style="display: grid; vertical-align: top; margin-left: 10px;">
       <div class="nicebox" style="margin-bottom: auto; vertical-align: top;">
-        <div class="setting-title">
-          ⛰️ Terrain settings
-        </div>
+        <div class="setting-title" data-i18n="terrainsettings"></div>
 
         <hr class="nicehr">
 
+        <!--Consider elevation-->
         <div style="margin-top: 15px; margin-bottom: 15px;">
-          <label>
-            <input type="checkbox" id="consElev-check" checked="true">
-            Consider elevation
-          </label>
+          <input type="checkbox" id="consElev-check" checked="true">
+          <label for="consElev-check" data-i18n="conselevation"></label>
           <span class="tooltip">❔
-            <span class="tooltip-text">
-              Place objects at their expected height in the schematic based on the  
-              altitude specified in the file.<hr>
-              If unchecked, all objects will be on Y level 0, regardless of 
-              their altitude values.
+            <span class="tooltip-text" data-i18n="conselevation_tooltip">
             </span>
           </span>
         </div>
 
+        <!--Fill terrain-->
         <div style="margin-top: 10px; margin-bottom: 10px;">
-          <label>
-            <input type="checkbox" id="doFill-check" onchange="doFillClick()">
-            Fill terrain
-          </label>
+          <input data-i18n="fillterrain" type="checkbox" id="doFill-check" onchange="doFillClick()"/>
+          <label for="doFill-check" data-i18n="fillterrain"></label> 
           <span class="tooltip">❔
-            <span class="tooltip-text">
-              Fill gaps between contour lines in a topographic schematic using the scanline fill algorithm.<hr>
-              For this to work, the vertical spacing between contours should not exceed 1 meter. 
-              There may be some misplaced blocks on areas with sparse contour lines, 
-              but they're usually very easy to spot and fix.
-            </span>
+            <span class="tooltip-text" data-i18n="fillterrain_tooltip"></span>
           </span>
         </div>
 
         <div>
-          <label for="fillBlockId-input">Filling block ID:</label>
+          <label for="fillBlockId-input" data-i18n="fillingblockid"></label>
           <input id="fillBlockId-input" type="text" class="nicebox" value="emerald_block" style="width: 110px" disabled/>
         </div>
       </div>
 
-      <div class="nicebox" style="height: 40px; margin-top: auto; visibility: hidden;">
-        <button class="nicebutton">
-          How to use this schematic? (wip)
-        </button>
-      </div>
     </div>
     
   </div>
 
-  <div style="margin-top: 20px; font-size: 14px;">
-    Privacy notice: all files are processed by your local machine and aren't uploaded to any server.
-    <br><a href="https://github.com/reyysun/geo-to-schematic">Source code</a>
+  <div data-i18n="privacynotice" style="margin-top: 20px; font-size: 14px"></div>
+  <a href="https://github.com/reyysun/geo-to-schematic">Source code</a>
+  
+  <div id="lang-switcher" class="langswitcher">
+    <button id="lang-ru" class="nicebutton langbutton">RU</button>
+    <button id="lang-en" class="nicebutton langbutton">EN</button>
   </div>
 
 
+  <script src="lang.js"></script>
   <script>
     // Появление фона
     window.addEventListener('load', () => {
@@ -321,7 +321,7 @@
     const consElevCheck = document.getElementById('consElev-check');
     const doFillCheck = document.getElementById('doFill-check');
     const fillBlockIdBox = document.getElementById('fillBlockId-input');
-    const bteOffsetsButton = document.getElementById('bteOffsetsButtons');
+    const bteOffsets = document.getElementById('bteOffset-select');
 
     function uploadFile(file) {
       console.log('Processing ' + file.name);
@@ -337,8 +337,8 @@
         } else if (name.endsWith('.geojson') || name.endsWith('.json')) {
           fileType = 'geojson'
         } else {
-          statusUpdate('File not supported', 'salmon')
           alert('Only .kml and .geojson files are supported')
+          return
         }
 
         const blockId = blockIdInput.value;
@@ -359,8 +359,13 @@
         doFill && console.log('fillBlockId: ',fillBlockId);
         console.log('schemVersion: ',schemVersion);
 
-        if ( !blockId || Number.isNaN(yOffset) ) {
-          alert('Please enter correct block ID and Y offset. Block ID can only be text');
+        function isDigit(str) {return /[^0-9]/.test(str)}
+        if ( !isDigit(blockId) || !isDigit(fillBlockId) ) {
+          alert('Please enter a valid Minecraft block ID. Only text IDs are supported');
+          return
+        }
+        if (!offset.every(item => Number.isInteger(item))) {
+          alert('Please enter correct offset values. Offset values can only be integers')
           return
         }
 
@@ -369,6 +374,7 @@
           result = convertGeoData(
             fr.result, fileType, blockId, offset, schemVersion, consElev, doFill, fillBlockId)
           console.log('Successful conversion! Now doing download...')
+
         } catch (err) {
           if (err.message === "Schematic too big") {
             statusUpdate(
@@ -377,11 +383,17 @@
             )
           }
           else if (err.message === "Wrong block id") {
+            // This can occur only if Legacy schematic selected
             statusUpdate(`Wrong block ID, please use text IDs of blocks
                           that are presented in 1.12.2`, 'salmon')
           }
+          else if (err.message === "temporary cant do legacy with fill") {
+            statusUpdate(`Sorry, it's currently not possible to apply 
+                          terrain fill to Legacy schematics. Please use 
+                          Sponge schematics.`, 'salmon')
+          }
           else { statusUpdate(
-            'Error while reading the file. Please make sure that your file is correct', 'salmon') }
+            'Unknown error =(', 'salmon') }
           console.log(err)
           return
         }
@@ -402,10 +414,10 @@
         link.click();
         var li = document.createElement('li');
         li.appendChild(link);
-        li.appendChild(document.createTextNode(` (${result[1].join(' ')})`)) // result[1] - это originalPoint
+        //li.appendChild(document.createTextNode(` (${result[1].join(' ')})`)) // result[1] - это originalPoint
         document.querySelector('#downloads').appendChild(li);
 
-        statusUpdate('Success!', 'MediumSeaGreen');
+        statusUpdate('Success! Use "//paste -a -o" to correctly place your schematic', 'MediumSeaGreen');
       }
       fr.readAsText(file);
     }
@@ -420,9 +432,13 @@
       fileInput.value = null;
     }
 
-    bteOffsetsButton.addEventListener('click', function(event) {
-      const clickedbutton = event.target.id;
+    bteOffsets.addEventListener('change', function(event) {
+      const clickedbutton = event.target.value;
+      console.log('1',clickedbutton)
       switch (clickedbutton) {
+        case 'offsetNone':
+          applyOffset(0, 0, 0);
+          break
         case 'offsetAsean':
           applyOffset(-13379008, 0, 2727648);
           break
@@ -431,6 +447,9 @@
           break
         case 'offsetRomania':
           applyOffset(0, -544, 0);
+          break
+        case 'offsetBalkans':
+          applyOffset(0, -1024, 0);
           break
       }
     })
