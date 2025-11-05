@@ -15,7 +15,7 @@
     "basesettings": "🛠️ Base settings",
     "blockid": "Contours block ID:",
     "offset": "↔️ Offset",
-    "offset_tooltip": "Additional schematic offset.<hr>Output schematic files already contain BTE-projected coordinates that //paste -o uses to correctly place the schematic. However, some BTE servers use an additional world offset. This world offset should be specified in this section. Most servers don't have an additional offset, and you don't need to change anything here.",
+    "offset_tooltip": "Additional schematic offset.<hr>Output schematic files already contain BTE-projected coordinates, which the \"//paste -o\" command uses to correctly place the schematic. However, some BTE servers use an additional world offset, usually in Y level. This offset should be specified in this section, and it'll be added to BTE coordinates. <span style=\"color:red\">Most servers don't have an additional offset, so you don't need to change anything here.</span>",
     "offset_preset": "Offset preset",
     "offset_preset1": "BTE ASEAN offset",
     "offset_preset2": "BTE Italy offset",
