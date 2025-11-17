@@ -3,24 +3,8 @@ function fillTerrain(grid) {
   const width = grid.length;       // Z
   const length = grid[0].length;   // X
 
-  function getContourHeights(cell) {
-    return cell.entries.filter(e => e.type === 'contour').map(e => e.elev);
-  }
-
   function addFilled(cell, elev) {
-    const existingFilled = cell.entries.find(e => e.type === 'filled');
-    if (!existingFilled) {
-      // нет filled — просто добавляем
-      cell.entries.push({ elev, type: 'filled' });
-      return;
-    }
-
-    // если есть filled — сравниваем высоты
-    if (existingFilled.elev > elev) {
-      // новый ниже — заменяем
-      existingFilled.elev = elev;
-    }
-    // если новый выше (elev больше) — не трогаем
+    cell.elev = newElev
   }
 
   // Определение, на какой высоте производить заливку - 
@@ -29,15 +13,9 @@ function fillTerrain(grid) {
     if (!leftHeights || !rightHeights) return null;
     if (leftHeights.length === 0 || rightHeights.length === 0) return null;
 
-    const l = Math.min(...leftHeights);
-    const r = Math.min(...rightHeights);
-    const diff = Math.abs(l - r);
+    const allHeights = leftHeights.concat(rightHeights)
 
-    // Разница должна быть не больше 1 блока
-    if (diff > 1) return null;
-
-    // Берём меньшую из двух высот как уровень заливки
-    return Math.min(l, r);
+    return Math.min(...allHeights);
   }
 
   // === SCANLINE ===
@@ -53,7 +31,7 @@ function fillTerrain(grid) {
 
         const cell =
           dir === 'x' ? grid[outer][inner] : grid[inner][outer];
-        const cHeights = getContourHeights(cell);
+        const cHeights = cell.elev;
 
         if (cHeights.length > 0) {   // Если столкнулись с ячейкой, на которой определен контур
           
@@ -72,7 +50,8 @@ function fillTerrain(grid) {
               for (const mid of buffer) {
                 const cellToFill =
                   dir === 'x' ? grid[outer][mid] : grid[mid][outer];
-                addFilled(cellToFill, fillTarget);
+                cellToFill.elev.push(fillTarget);
+                cellToFill.type = 'filled';
               }
             }
             // И опорная ячейка переписывается на текущую ячейку

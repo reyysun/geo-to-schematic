@@ -77,17 +77,13 @@ function convertGeoData(geotext, fileType, blockId, offset, schemVersion, consEl
 
     // 2D grid [z][x]
     const grid = Array.from({ length: width }, () =>
-      Array.from({ length }, () => ({ entries: [] }))
+      Array.from({ length }, () => ({"elev": new Array, "type": null}))
     );
 
     // Функция добавления клетки контура в 2d grid
     function addEntry(cell, elev, type) {
-      const existing = cell.entries.find(e => e.elev === elev);
-      if (existing) {
-        if (existing.type !== 'contour' && type === 'contour') existing.type = 'contour';
-        return;
-      }
-      cell.entries.push({ elev, type });
+        cell.elev = [elev];
+        cell.type = type;
     }
 
     const toGrid = (pt) => [Math.round(pt[0]) - minX, Math.round(pt[1]) - minZ];
@@ -133,22 +129,13 @@ function convertGeoData(geotext, fileType, blockId, offset, schemVersion, consEl
     for (let gz = 0; gz < width; gz++) {
       for (let gx = 0; gx < length; gx++) {
         const cell = grid[gz][gx];
-        if (!cell.entries.length) continue;
+        if (!cell.type) continue;
 
-        const map = new Map();
-        for (const e of cell.entries) {
-          const prev = map.get(e.elev);
-          if (!prev) map.set(e.elev, e.type);
-          else if (prev !== 'contour' && e.type === 'contour') map.set(e.elev, 'contour');
-        }
-
-        for (const [elev, type] of map.entries()) {
-          const y = elev - minY;
-          if (y < 0 || y >= height) continue;
-          const index = y * width * length + gz * length + gx;
-          const val = (type === 'contour') ? 1 : 2;
-          if (blockData[index] === 0 || val === 1) blockData[index] = val;
-        }
+        const y = cell.elev - minY;
+        if (y < 0 || y >= height) continue;
+        const index = y * width * length + gz * length + gx;
+        const val = (cell.type === 'contour') ? 1 : 2;
+        if (blockData[index] === 0 || val === 1) blockData[index] = val;
       }
     }
 
