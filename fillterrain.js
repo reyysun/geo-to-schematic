@@ -3,10 +3,6 @@ function fillTerrain(grid) {
   const width = grid.length;       // Z
   const length = grid[0].length;   // X
 
-  function addFilled(cell, elev) {
-    cell.elev = newElev
-  }
-
   // Определение, на какой высоте производить заливку - 
   // на высоте равной опорной точке (возвышение/ровный рельеф) или на 1 ниже (спуск рельефа)
   function decideFill(leftHeights, rightHeights) {
@@ -20,24 +16,39 @@ function fillTerrain(grid) {
 
   // === SCANLINE ===
   function scanlineFill(dir) {
-    const outerMax = dir === 'x' ? width : length;
-    const innerMax = dir === 'x' ? length : width;
+    // x; z; -x; -z
+    const isX = dir.includes('x');
+    const reverse = dir.startsWith('-');
 
-    for (let outer = 0; outer < outerMax; outer++) {
+    const outerMax = isX ? width : length;
+    const innerMax = isX ? length : width;
+
+    const outerStart = reverse ? outerMax - 1 : 0;
+    const outerEnd   = reverse ? -1 : outerMax;
+    const outerStep  = reverse ? -1 : 1;
+
+    const innerStart = reverse ? innerMax - 1 : 0;
+    const innerEnd   = reverse ? -1 : innerMax;
+    const innerStep  = reverse ? -1 : 1;
+
+    for (let outer = outerStart; outer !== outerEnd; outer += outerStep) {
       let leftAnchor = null;
       let buffer = [];
 
-      for (let inner = 0; inner < innerMax; inner++) {
+      for (let inner = innerStart; inner !== innerEnd; inner += innerStep) {
 
-        const cell =
-          dir === 'x' ? grid[outer][inner] : grid[inner][outer];
-        const cHeights = cell.elev;
+        const cell = isX ? grid[outer][inner] : grid[inner][outer];
+        let cHeights = cell.elev;
 
-        if (cHeights.length > 0) {   // Если столкнулись с ячейкой, на которой определен контур
+        if (cHeights.length > 0) {
           
           if (leftAnchor === null) { // Если опорной точки нет: Делаем эту точку опорной и начинаем запись buffer
-            leftAnchor = { pos: inner, heights: cHeights };
+            leftAnchor = {
+              pos: inner, 
+              heights: cHeights 
+            };
             buffer = [];
+
           } else {                   // Если опорная точка есть: Начинаем заполнение ячеек между опорной точкой и нынешней
             const leftHeights = leftAnchor.heights // Массив высот левой точки (опорной)
             const rightHeights = cHeights          // Массив высот правой точки (на которой мы сейчас)
@@ -48,10 +59,15 @@ function fillTerrain(grid) {
             if (fillTarget !== null) {
               // Заполнение каждой ячейки в buffer
               for (const mid of buffer) {
-                const cellToFill =
-                  dir === 'x' ? grid[outer][mid] : grid[mid][outer];
+                const cellToFill = isX ? grid[outer][mid] : grid[mid][outer];
                 cellToFill.elev.push(fillTarget);
                 cellToFill.type = 'filled';
+              }
+
+              // Если правая точка - изумруд, то она не должна быть выше левой точки ни при каких обстоятельствах
+              if (cell.type === 'filled') {
+                cell.elev = [fillTarget]
+                cHeights = [fillTarget]
               }
             }
             // И опорная ячейка переписывается на текущую ячейку
@@ -68,7 +84,8 @@ function fillTerrain(grid) {
 
   // два прохода — по X и по Z
   scanlineFill('z'); // X-pass
-  scanlineFill('x'); // Z-pass
+  scanlineFill('x'); // Z-pass для того чтобы спустись поднятые изумруды и закрыть дыры
+  scanlineFill('-x'); // тот же Z-pass для спуска поднятых изюмов, но в обратном направлении
 }
 
 module.exports = fillTerrain;
