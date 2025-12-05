@@ -195,7 +195,7 @@ function GeojsonParse(data) {
         // Удаляем 3 параметр из координат каждого объекта и пушим в словарь
         for (let i = 0; i < coords.length; i++) {
 
-          clearedCoords = removeThirdParameter(coords[i])
+          const clearedCoords = removeThirdParameter(coords[i])
           contours[elevation].push(clearedCoords)
 
         }
