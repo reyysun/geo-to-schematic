@@ -3,15 +3,28 @@ function fillTerrain(grid) {
   const width = grid.length;       // Z
   const length = grid[0].length;   // X
 
-  // Определение, на какой высоте производить заливку - 
-  // на высоте равной опорной точке (возвышение/ровный рельеф) или на 1 ниже (спуск рельефа)
+  // Определение, производить ли заливку и на какой высоте
   function decideFill(leftHeights, rightHeights) {
     if (!leftHeights || !rightHeights) return null;
     if (leftHeights.length === 0 || rightHeights.length === 0) return null;
 
-    const allHeights = leftHeights.concat(rightHeights)
+    const setR = new Set(rightHeights);
+    // Проверка, что число совпадает, +1 или -1
+    for (const h of leftHeights) {
+      if (
+        setR.has(h) ||
+        setR.has(h-1) ||
+        setR.has(h+1)
+      ) {
+        const minHeight = Math.min(
+          ...leftHeights,
+          ...rightHeights
+        );
+        return minHeight
+      }
+    }
 
-    return Math.min(...allHeights);
+    return null;
   }
 
   // === SCANLINE ===
