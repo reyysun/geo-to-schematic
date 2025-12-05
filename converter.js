@@ -9,12 +9,11 @@
 const terraconvert = require('@bte-germany/terraconvert');
 const nbt = require('prismarine-nbt')
 const fflate = require('fflate')
-const { KMLParse, GeojsonParse } = require('./geoparser')
 const Schematic = require('./schematicformats')
 const fillTerrain = require('./fillterrain.js')
 
 
-function convertGeoData(geotext, fileType, blockId, offset, schemVersion, consElev, doFill, fillBlockId) {
+function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill, fillBlockId) {
 
   // Преобразование координат в проекцию BTE и округление
   function getBTECoords(contours, consElev) {
@@ -200,21 +199,58 @@ function convertGeoData(geotext, fileType, blockId, offset, schemVersion, consEl
   
   if (schemVersion === 'Legacy' && doFill) 
     // извините я хз как это починить пока что
-    { throw new Error("temporary cant do legacy with fill") }
-  let parsedData
+    { throw new Error("temporary cant do legacy with fill"); }
+  const filesList = [];
+  let originPoint;
 
-  if (fileType == 'kml') {parsedData = KMLParse(geotext)}
-  else if (fileType == 'geojson') {parsedData = GeojsonParse(geotext)}
+  console.log('GEOLIST: ', geolist)
 
-  const contours = getBTECoords(parsedData, consElev);
-  const schematicResult = createSchematic(contours, blockId, offset, schemVersion, doFill, fillBlockId);
-  const schematic = schematicResult[0]; const originPoint = schematicResult[1];
-  console.log('NBT done, now compressing...')
-  const nbtBuffer = nbt.writeUncompressed(schematic);
-  const compressed = fflate.gzipSync(nbtBuffer);
+  for (const [geotext, filename] of geolist) {
 
-  return [compressed, originPoint]
+    console.log('GEOTEXT: ',geotext)
 
+    const contours = getBTECoords(geotext, consElev);
+    const schematicResult = createSchematic(contours, blockId, offset, schemVersion, doFill, fillBlockId);
+    const schematic = schematicResult[0];
+    originPoint = schematicResult[1];
+
+    console.log('NBT done, now compressing...');
+    const nbtBuffer = nbt.writeUncompressed(schematic);
+    const compressed = fflate.gzipSync(nbtBuffer);
+    filesList.push([compressed, filename, originPoint]);
+
+  }
+
+  // АРХИВАЦИЯ ZIP
+  if (filesList.length > 1) { 
+
+    console.log('More than 1 files detected, starting archiving...');
+
+    let ext;
+    switch (schemVersion) {
+      case "SpongeV3": ext = '.schem'; break;
+      case "Legacy": ext = '.schematic'; break;
+    }
+    
+    const zipData = {};
+    for (const [content, filename] of filesList) {
+      zipData[filename+ext] = content;
+    }
+    const zipped = fflate.zipSync(zipData);
+    console.log('ZIP created succesfully');
+    return [zipped, true, 'geotoschematic']
+
+  } 
+  
+  // ОДИН ФАЙЛ СХЕМАТИКИ
+  else if (filesList.length == 1) { // 1 файл в filesList
+
+    console.log('1 file detected');
+    return [filesList[0][0], false, filesList[0][1]]
+
+  } else {
+    throw new Error("No data to process");
+  }
 }
 
 window.convertGeoData = convertGeoData;

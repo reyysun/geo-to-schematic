@@ -226,7 +226,4 @@ function removeThirdParameter(linePoints) {
     return linePoints.map(p => [p[0], p[1]])  
 }
 
-module.exports = {
-  KMLParse,
-  GeojsonParse
-}
+export { KMLParse, GeojsonParse }

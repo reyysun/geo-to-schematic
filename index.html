@@ -5,7 +5,9 @@
   <meta charset="UTF-8" />
   <title>GeoToSchematic</title>
   <link rel="icon" href="images/icon.png" type="image/x-icon">
-  <script src="ultraconverter.min.js"></script>
+  <script src="lang.js"></script>
+  <script src="./ultraconverter.js"></script>
+  <script type="module" src="main.js" defer></script>
 
   <style>
     body {
@@ -16,7 +18,6 @@
       font-family: sans-serif;
       position: relative;
       z-index: 0;
-      overflow: hidden;
     }
 
     /* фоновое изображение через псевдоэлемент */
@@ -169,15 +170,15 @@
     <div class="title">GeoToSchematic</div>
   </div>
 
-  <div data-i18n="description" style="margin-top: 25px; margin-bottom: 15px; line-height: 1.5;">
+  <div data-i18n="description" style="margin-top: 25px; margin-bottom: 10px; line-height: 1.5;"></div>
+  <div data-i18n="description2" style="font-size: 14px; margin-bottom: 25px;"></div>
+
+  <div style="width: 40%;">
+    <input id="fileInput" class="nicebox" style="width: 275px;" type="file" accept=".kml,.geojson,.json" multiple/><br/>
+    <button id="export-button" class="nicebutton" style="width: 275px;" data-i18n="button_export"></button>
   </div>
 
-  <div>
-    <input id="fileInput" class="nicebox" type="file" accept=".kml,.geojson,.json" onchange="upload(this)" multiple/><br/>
-  </div>
-
-  <div id="status" style="margin-top: 20px; margin-bottom: 10px; text-align: left; font-weight: bold;">
-    Import your file
+  <div id="status" data-i18n="status_import" style="margin-top: 20px; margin-bottom: 10px; text-align: left; font-weight: bold;">
   </div>
 
   <ul id="downloads"></ul>
@@ -204,7 +205,6 @@
           </span>
         </span>
       </div>
-      
       
       <div style="display: flex; margin-top: 10px; margin-bottom: 10px;">
         
@@ -275,7 +275,7 @@
 
         <!--Fill terrain-->
         <div style="margin-top: 10px; margin-bottom: 10px;">
-          <input data-i18n="fillterrain" type="checkbox" id="doFill-check" onchange="doFillClick()"/>
+          <input data-i18n="fillterrain" type="checkbox" id="doFill-check"/>
           <label for="doFill-check" data-i18n="fillterrain"></label> 
           <span class="tooltip">❔
             <span class="tooltip-text" data-i18n="fillterrain_tooltip"></span>
@@ -299,177 +299,5 @@
     <button id="lang-ru" class="nicebutton langbutton">RU</button>
     <button id="lang-en" class="nicebutton langbutton">EN</button>
   </div>
-
-
-  <script src="lang.js"></script>
-  <script>
-    // Появление фона
-    window.addEventListener('load', () => {
-      document.body.classList.add('bg-loaded');
-    });
-
-    // ЛОГИКА САЙТА
-    const fileInput = document.getElementById('fileInput');
-    const statusText = document.getElementById('status');
-    const blockIdInput = document.getElementById('blockId-input');
-    
-    const XOffsetInput = document.getElementById('doXOffset-input');
-    const YOffsetInput = document.getElementById('doYOffset-input');
-    const ZOffsetInput = document.getElementById('doZOffset-input');
-
-    const formatBox = document.getElementById('schematicver-select');
-    const consElevCheck = document.getElementById('consElev-check');
-    const doFillCheck = document.getElementById('doFill-check');
-    const fillBlockIdBox = document.getElementById('fillBlockId-input');
-    const bteOffsets = document.getElementById('bteOffset-select');
-
-    function uploadFile(file) {
-      console.log('Processing ' + file.name);
-      
-      var fr = new FileReader();
-      fr.onload = function() {
-
-        var name = file.name.toLowerCase();
-        let fileType;
-
-        if (name.endsWith('.kml')) {
-          fileType = 'kml'
-        } else if (name.endsWith('.geojson') || name.endsWith('.json')) {
-          fileType = 'geojson'
-        } else {
-          alert('Only .kml and .geojson files are supported')
-          return
-        }
-
-        const blockId = blockIdInput.value;
-        const xOffset = parseInt(XOffsetInput.value);
-        const yOffset = parseInt(YOffsetInput.value);
-        const zOffset = parseInt(ZOffsetInput.value);
-        const offset = [xOffset, yOffset, zOffset];
-        const consElev = consElevCheck.checked;
-        const doFill = doFillCheck.checked;
-        const schemVersion = formatBox.value;
-        const fillBlockId = fillBlockIdBox.value;
-        
-
-        console.log('blockId: ',blockId);
-        console.log('offset: ',offset);
-        console.log('consElev: ',consElev)
-        console.log('doFill: ',doFill);
-        doFill && console.log('fillBlockId: ',fillBlockId);
-        console.log('schemVersion: ',schemVersion);
-
-        function isDigit(str) {return /[^0-9]/.test(str)}
-        if ( !isDigit(blockId) || !isDigit(fillBlockId) ) {
-          alert('Please enter a valid Minecraft block ID. Only text IDs are supported');
-          return
-        }
-        if (!offset.every(item => Number.isInteger(item))) {
-          alert('Please enter correct offset values. Offset values can only be integers')
-          return
-        }
-
-        let result;
-        try {
-          result = convertGeoData(
-            fr.result, fileType, blockId, offset, schemVersion, consElev, doFill, fillBlockId)
-          console.log('Successful conversion! Now doing download...')
-
-        } catch (err) {
-          if (err.message === "Schematic too big") {
-            statusUpdate(
-              `Hold on, your file is too big for one schematic! 
-              How about splitting it into smaller ones?`, 'salmon'
-            )
-          }
-          else if (err.message === "Wrong block id") {
-            // This can occur only if Legacy schematic selected
-            statusUpdate(`Wrong block ID, please use text IDs of blocks
-                          that are presented in 1.12.2`, 'salmon')
-          }
-          else if (err.message === "temporary cant do legacy with fill") {
-            statusUpdate(`Sorry, it's currently not possible to apply 
-                          terrain fill to Legacy schematics. Please use 
-                          Sponge schematics.`, 'salmon')
-          }
-          else { statusUpdate(
-            'Unknown error =(', 'salmon') }
-          console.log(err)
-          return
-        }
-
-        if (~name.lastIndexOf('.')) {
-            name = name.substr(0, name.lastIndexOf('.'));
-        }
-        
-        let ext;
-        if (schemVersion == "Legacy") { ext = '.schematic' } else { ext = '.schem' };
-        name += ext;
-    
-        var blob = new Blob([result[0]], {type: 'application/nbt'}); // result[0] - это файл
-        var link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = name;
-        link.innerHTML = 'Download ' + name;
-        link.click();
-        var li = document.createElement('li');
-        li.appendChild(link);
-        //li.appendChild(document.createTextNode(` (${result[1].join(' ')})`)) // result[1] - это originalPoint
-        document.querySelector('#downloads').appendChild(li);
-
-        statusUpdate('Success! Use "//paste -a -o" to correctly place your schematic', 'MediumSeaGreen');
-      }
-      fr.readAsText(file);
-    }
-
-    function upload(input) {
-      statusUpdate('Converting...', 'wheat');
-
-      for (var i = 0; i < input.files.length; i++) {
-        uploadFile(input.files[i]);
-      }
-      
-      fileInput.value = null;
-    }
-
-    bteOffsets.addEventListener('change', function(event) {
-      const clickedbutton = event.target.value;
-      console.log('1',clickedbutton)
-      switch (clickedbutton) {
-        case 'offsetNone':
-          applyOffset(0, 0, 0);
-          break
-        case 'offsetAsean':
-          applyOffset(-13379008, 0, 2727648);
-          break
-        case 'offsetItaly':
-          applyOffset(0, -2016, 0);
-          break
-        case 'offsetRomania':
-          applyOffset(0, -544, 0);
-          break
-        case 'offsetBalkans':
-          applyOffset(0, -1024, 0);
-          break
-      }
-    })
-
-    function applyOffset(x, y, z) {
-      XOffsetInput.value = x
-      YOffsetInput.value = y
-      ZOffsetInput.value = z
-    }
-
-    function doFillClick() {
-      const enabled = doFillCheck.checked;
-      fillBlockIdBox.disabled = !enabled; // вкл/выкл строку ввода filling block
-      document.body.classList.toggle('bg-alt', enabled);
-    }
-  
-    function statusUpdate(text, color) {
-      statusText.textContent = text;
-      statusText.style.color = color
-    }
-  </script>
 </body>
 </html>
