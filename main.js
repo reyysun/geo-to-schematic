@@ -116,7 +116,7 @@ async function start() {
     }
     try {
         const parsedDataList = await Promise.all(promises)
-        console.log('Все файлы обработаны')
+        console.log('All promises done')
         
         processData(parsedDataList)
 
@@ -156,7 +156,6 @@ function processData(parsedDataList) {
     }
 
     let result;
-    console.log('PARSEDDATALIST: ',parsedDataList)
     try {
         result = window.convertGeoData(
         parsedDataList, blockId, offset, schemVersion, consElev, doFill, fillBlockId)
