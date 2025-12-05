@@ -4,8 +4,11 @@
     "title": "GeoToSchemtic",
 
     "description": "Convert <b>KML and GeoJSON</b> files into <b>Minecraft schematics</b> using BuildTheEarth projection!",
+    "description2": "Upload your files and set the desired settings, then click \"Convert\".<br>All converted schematics can be pasted into their correct positions in BuildTheEarth world using <span style=\"color: aqua\">//paste -o -a</span>.<br>",
 
-    "status_import": "Import your file",
+    "button_export": "Convert",
+
+    "status_import": "",
     "status_converting": "Converting...",
     "status_success": "Success! Use \"//paste -a -o\" to correctly place your schematic",
     "status_error": "Error while reading the file. Please make sure that your file is correct",

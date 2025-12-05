@@ -4,8 +4,11 @@
     "title": "GeoToSchemtic",
 
     "description": "Конвертируйте <b>KML и GeoJSON</b> файлы в <b>схематики Minecraft</b> с использованием проекции BuildTheEarth!",
+    "description2": "Загрузите файлы и выставьте нужные настройки, затем нажмите \"Конвертировать\".<br>Все сконвертированные схематики могут быть вставлены на правильную позицию в мире BuildTheEarth с помощью <span style=\"color: aqua\">//paste -o -a</span>.",
 
-    "status_import": "Загрузите файл",
+    "button_export": "Конвертировать",
+
+    "status_import": "",
     "status_converting": "Идет конвертация...",
     "status_success": "Успех! Используйте \"//paste -a -o\", чтобы правильно вставить схематику.",
     "status_error": "Ошибка во время чтения файла. Убедитесь, что ваш файл правильный",
