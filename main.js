@@ -83,16 +83,18 @@ function processFile(file) {
                 return
             }
 
-            let parsedData;
-            if (fileType == 'kml') {parsedData = KMLParse(unparsedData)}
-            else if (fileType == 'geojson') {parsedData = GeojsonParse(unparsedData)}
-            else { return }
-
-            resolve(parsedData);
-        }
-        fr.onerror = function() {
-            console.log('Error reading file')
-            reject()
+            try {
+                let parsedData;
+                if (fileType == 'kml') {parsedData = KMLParse(unparsedData)}
+                else if (fileType == 'geojson') {parsedData = GeojsonParse(unparsedData)}
+                else { return }
+                resolve(parsedData);
+            }
+            catch (err) {
+                console.log(err)
+                statusUpdate('Error while reading the file. Does it contain geodata?', 'salmon');
+                return
+            }
         }
         
         fr.readAsText(file);
@@ -100,28 +102,33 @@ function processFile(file) {
 }
 
 async function start() {
-    statusUpdate('Converting...', 'wheat');
     const files = fileInput.files;
-
-    const promises = [];
-    let supposedName;
-    for (let i = 0; i < files.length; i++) {
-        const filePromise = processFile(files[i]);
-        const supposedName = files[i].name.substr(0, files[i].name.lastIndexOf('.'));;
-        const resultPromise = filePromise.then(parsedData => {
-            return [parsedData, supposedName]
-        })
-        promises.push(resultPromise);
-
+    if (files.length == 0) {
+        statusUpdate('Upload a file first', 'salmon');
+        return
     }
+    statusUpdate('Converting...', 'wheat');
+    
+    const promises = [];
     try {
-        const parsedDataList = await Promise.all(promises)
-        console.log('All promises done')
-        
-        processData(parsedDataList)
+        for (let i = 0; i < files.length; i++) {
+            const filePromise = processFile(files[i]);
+            const supposedName = files[i].name.substr(0, files[i].name.lastIndexOf('.'));;
+            const resultPromise = filePromise.then(parsedData => {
+                return [parsedData, supposedName]
+            })
+            promises.push(resultPromise);
 
-    } catch (error) {
-        console.log(error)
+        }
+        const parsedDataList = await Promise.all(promises);
+        console.log('All promises done');
+        
+        processData(parsedDataList);
+
+    } catch (err) {
+        statusUpdate('Unknown error while processing your file =(', 'salmon');
+        console.log(err);
+        return
     }
 }
 
