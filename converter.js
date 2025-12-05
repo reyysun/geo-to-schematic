@@ -203,11 +203,7 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill
   const filesList = [];
   let originPoint;
 
-  console.log('GEOLIST: ', geolist)
-
   for (const [geotext, filename] of geolist) {
-
-    console.log('GEOTEXT: ',geotext)
 
     const contours = getBTECoords(geotext, consElev);
     const schematicResult = createSchematic(contours, blockId, offset, schemVersion, doFill, fillBlockId);
@@ -224,7 +220,7 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill
   // АРХИВАЦИЯ ZIP
   if (filesList.length > 1) { 
 
-    console.log('More than 1 files detected, starting archiving...');
+    console.log('More than 1 files, starting archiving...');
 
     let ext;
     switch (schemVersion) {
@@ -245,7 +241,6 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill
   // ОДИН ФАЙЛ СХЕМАТИКИ
   else if (filesList.length == 1) { // 1 файл в filesList
 
-    console.log('1 file detected');
     return [filesList[0][0], false, filesList[0][1]]
 
   } else {
