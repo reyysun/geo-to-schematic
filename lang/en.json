@@ -32,7 +32,7 @@
     "conselevation": "Consider elevation",
     "conselevation_tooltip": "Place objects at their expected height in the schematic based on their altitude value specified in the kml/geojson file.<hr>If unchecked, all objects will be on Y level 0, regardless of their altitude values.",
     "fillterrain": "Fill terrain",
-    "fillterrain_tooltip": "Fill gaps between contour lines in a topographic schematic using the scanline fill algorithm.<hr>This works with both enclosed and open contours. The only requirement is a 1 meter contour interval. There may be some missing or misplaced blocks, but they're easy to spot and fix.",
+    "fillterrain_tooltip": "Fill gaps between contour lines in a topographic schematic using the scanline fill algorithm. <span style=\"color: red\">Experimental feature. There may be some misplaced blocks, but they are easy to spot and fix manually.</span><hr>Emerald blocks will be generated between all diamond blocks along the X and Z axes. The diamond contours themselves will remain intact. This works with both enclosed and open contours. There must be a vertical interval of 0-1 meter between the contours for emeralds to generate.",
     "fillingblockid": "Filling block ID:",
     
     "privacynotice": "Privacy notice: all files are processed by your local machine<br>and aren't uploaded to any server.",
