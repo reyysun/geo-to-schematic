@@ -81,12 +81,12 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill
 
     // Функция добавления клетки контура в 2d grid
     function addEntry(cell, elev, type) {
-        cell.elev = [elev];
+        cell.elev.push(elev);
         cell.type = type;
     }
 
     const toGrid = (pt) => [Math.round(pt[0]) - minX, Math.round(pt[1]) - minZ];
-
+    
     // Растеризация контуров
     for (const [elevStr, lines] of Object.entries(btecoords)) {
       const elev = Number(elevStr);
@@ -130,11 +130,14 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill
         const cell = grid[gz][gx];
         if (!cell.type) continue;
 
-        const y = cell.elev - minY;
-        if (y < 0 || y >= height) continue;
-        const index = y * width * length + gz * length + gx;
-        const val = (cell.type === 'contour') ? 1 : 2;
-        if (blockData[index] === 0 || val === 1) blockData[index] = val;
+        for (let i = 0; i < cell.elev.length; i++) { // Разбор каждого слоя Y на этой клетке в 2д сетке
+          const y = cell.elev[i] - minY;
+          if (y < 0 || y >= height) continue;
+          const index = y * width * length + gz * length + gx;
+          const val = (cell.type === 'contour') ? 1 : 2;
+          if (blockData[index] === 0 || val === 1) blockData[index] = val;
+        }
+        
       }
     }
 
