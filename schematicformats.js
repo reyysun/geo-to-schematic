@@ -54,35 +54,36 @@ class Schematic {
   Legacy() {
 
     const paletteMap = {};
+
     for (const key in this.palette) {
-      const varInt = this.palette[key].value;
-      const blockId = blocksNamespace[key];
-      if (blockId === undefined) {
+
+      const paletteKey = this.palette[key].value;
+      let packed = blocksNamespace[key];
+
+      if (packed === undefined) {
         console.log(`ERROR: can't find block ${key}`)
         throw new Error(`Wrong block id`);
       }
-      paletteMap[varInt] = blockId;
+
+      const legacyId = packed >> 4;
+      const meta = packed & 0xF;
+
+      let signedId = legacyId;
+      if (signedId > 127) { signedId -= 256; }
+
+      paletteMap[paletteKey] = { id: signedId, meta };
     }
 
     const total = this.size.width * this.size.length * this.size.height;
-    const blocks = new Uint8Array(total);
-    const data = new Uint8Array(total);
+    const blocks = new Array(total);
+    const data = new Array(total);
 
-    let idx = 0;
-    for (let i=0; i < this.blockdata.length; i++) {
-      let varInt = 0;
-      let varIntLength = 0;
-      varInt |= (this.blockdata[i] & 127) << (varIntLength++ * 7);
-                
-      if ((this.blockdata[i] & 128) == 128) {
-        continue;
-      }
-      
-      const blockId = paletteMap[varInt];
+    for (let i=0; i < this.blockdata.length; i++) { 
+      const blockKey = this.blockdata[i];
+      const entry = paletteMap[blockKey];
 
-      blocks[idx] = blockId >> 4;
-      data[idx] = blockId & 0xF;
-      idx++
+      blocks[i] = entry.id;
+      data[i] = entry.meta;
     }
 
     return {
