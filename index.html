@@ -170,7 +170,7 @@
 
   <header>
     <div>
-      <img src="images/btestylelogo.png" alt="logo" class="logo"/>
+      <img src="images/btestylelogo.png" alt="Pixelated stylized planet Earth with a contour map above it" class="logo"/>
       <h1 class="title">GeoToSchematic</h1>
     </div>
 
@@ -283,6 +283,8 @@
             </span>
           </div>
 
+          <hr class="nicehr">
+
           <!--Fill terrain-->
           <div style="margin-top: 10px; margin-bottom: 10px;">
             <input data-i18n="fillterrain" type="checkbox" id="doFill-check"/>
@@ -297,6 +299,31 @@
             <label for="fillBlockId-input" data-i18n="fillingblockid"></label>
             <input id="fillBlockId-input" type="text" class="nicebox" value="emerald_block" style="width: 110px" disabled/>
           </div>
+
+          <hr class="nicehr">
+
+          <!--Make foundation-->
+          <div style="margin-top: 10px; margin-bottom: 10px;">
+            <input id="make-foundation" type="checkbox" class="nicebox"/>
+            <label for="make-foundation" data-i18n="makefoundation"></label>
+            <span class="tooltip" role="tooltip">❔
+              <span class="tooltip-text" data-i18n="makefoundation_tooltip">
+              </span>
+            </span>
+          </div>
+
+          <!--Foundation block ID-->
+          <div style="margin-top: 10px; margin-bottom: 10px;">
+            <label for="foundationBlockId-input" data-i18n="foundationblockid"></label>
+            <input id="foundationBlockId-input" type="text" class="nicebox" value="stone" style="width: 85px" disabled/>
+          </div>
+
+          <!--Foundation thickness-->
+          <div style="margin-top: 10px; margin-bottom: 10px;">
+            <label for="foundationThickness-input" data-i18n="foundationthickness"></label>
+            <input id="foundationThickness-input" type="number" class="nicebox" value="1" min="1" max="10" style="width: 30px;" disabled/>
+          </div>
+
         </div>
 
       </div>

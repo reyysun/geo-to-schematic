@@ -17,11 +17,16 @@ const formatBox = document.getElementById('schematicver-select');
 const consElevCheck = document.getElementById('consElev-check');
 const doFillCheck = document.getElementById('doFill-check');
 const fillBlockIdBox = document.getElementById('fillBlockId-input');
+const makeFoundationCheck = document.getElementById('make-foundation');
+const foundationBlockIdBox = document.getElementById('foundationBlockId-input');
+const foundationThicknessBox = document.getElementById('foundationThickness-input')
 const bteOffsets = document.getElementById('bteOffset-select');
 
+// Хэндлеры
 exportButton.addEventListener('click', start);
 bteOffsets.addEventListener('change', chooseOffsetPreset);
 doFillCheck.addEventListener('change', doFillClick);
+makeFoundationCheck.addEventListener('change', doFoundationClick);
 
 //
 function createExportFile(exportData) {
@@ -143,7 +148,9 @@ function processData(parsedDataList) {
     const doFill = doFillCheck.checked;
     const schemVersion = formatBox.value;
     const fillBlockId = fillBlockIdBox.value;
-    
+    const makeFoundation = makeFoundationCheck.checked;
+    const foundationBlockId = foundationBlockIdBox.value;
+    const foundationThickness = parseInt(foundationThicknessBox.value);
 
     console.log('blockId: ',blockId);
     console.log('offset: ',offset);
@@ -153,19 +160,22 @@ function processData(parsedDataList) {
     console.log('schemVersion: ',schemVersion);
 
     function isDigit(str) {return /[^0-9]/.test(str)}
-    if ( !isDigit(blockId) || !isDigit(fillBlockId) ) {
+    if ( !isDigit(blockId) || !isDigit(fillBlockId) || !isDigit(foundationBlockId) ) {
         alert('Please enter a valid Minecraft block ID. Only text IDs are supported');
         return
     }
-    if (!offset.every(item => Number.isInteger(item))) {
+    else if (!offset.every(item => Number.isInteger(item))) {
         alert('Please enter correct offset values. Offset values can only be integers')
         return
     }
 
+    const fillSettings = [doFill, fillBlockId];
+    const foundationSettings = [makeFoundation, foundationBlockId, foundationThickness];
+
     let result;
     try {
         result = window.convertGeoData(
-        parsedDataList, blockId, offset, schemVersion, consElev, doFill, fillBlockId)
+        parsedDataList, blockId, offset, schemVersion, consElev, fillSettings, foundationSettings)
         console.log('Successful conversion! Now doing download...')
 
     } catch (err) {
@@ -228,7 +238,14 @@ function applyOffset(x, y, z) {
 function doFillClick() {
     const enabled = doFillCheck.checked;
     fillBlockIdBox.disabled = !enabled; // вкл/выкл строку ввода filling block
+    // Смена заднего фона
     document.body.classList.toggle('bg-alt', enabled);
+}
+
+function doFoundationClick() {
+    const enabled = makeFoundationCheck.checked;
+    foundationBlockIdBox.disabled = !enabled;
+    foundationThicknessBox.disabled = !enabled;
 }
 
 function statusUpdate(text, color) {
