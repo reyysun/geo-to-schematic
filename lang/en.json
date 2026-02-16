@@ -3,8 +3,8 @@
 
     "title": "GeoToSchemtic",
 
-    "description": "Convert <b>KML and GeoJSON</b> files into <b>Minecraft schematics</b> using BuildTheEarth projection!",
-    "description2": "Upload your files and set the desired settings, then click \"Convert\".<br>All converted schematics can be pasted into their correct positions in BuildTheEarth world using <span style=\"color: aqua\">//paste -o -a</span>.<br>",
+    "description": "Convert <b>KML and GeoJSON</b> files to <b>Minecraft schematics</b> for BuildTheEarth project!",
+    "description2": "Upload your files and set the desired settings, then click \"Convert\".<br>Use <span style=\"color: aqua\">//paste -o -a</span> command to paste your converted schematic into the correct position in BTE projection.<br>",
 
     "button_export": "Convert",
 
@@ -18,7 +18,7 @@
     "basesettings": "🛠️ Base settings",
     "blockid": "Contours block ID:",
     "offset": "↔️ Offset",
-    "offset_tooltip": "Additional schematic offset.<hr>Output schematic files already contain BTE-projected coordinates, which the \"//paste -o\" command uses to correctly place the schematic. However, some BTE servers use an additional world offset, usually in Y level. This offset should be specified in this section, and it'll be added to BTE coordinates. <span style=\"color:red\">Most servers don't have an additional offset, so you don't need to change anything here.</span>",
+    "offset_tooltip": "Additional schematic offset.<hr>Some BTE servers have an additional world offset. The specified offset will be added to the original schematic coordinates. <span style=\"color:red\">Most servers don't have an additional offset, please check offset presets.</span>",
     "offset_preset": "Offset preset",
     "offset_preset1": "BTE ASEAN offset",
     "offset_preset2": "BTE Italy offset",

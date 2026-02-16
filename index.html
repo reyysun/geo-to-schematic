@@ -6,7 +6,7 @@
   <title>GeoToSchematic</title>
   <link rel="icon" href="images/icon.png" type="image/x-icon">
   <script src="lang.js"></script>
-  <script src="./ultraconverter.min.js"></script>
+  <script src="./ultraconverter.js"></script>
   <script type="module" src="main.js" defer></script>
 
   <style>
@@ -127,6 +127,8 @@
       font-size: 18px;
       font-weight: bold;
       margin-top: 5px;
+      margin-bottom: 5px;
+      display: inline;
     }
 
     .tooltip-text {
@@ -165,51 +167,60 @@
 </head>
 
 <body>
-  <div>
-    <img src="images/btestylelogo.png" alt="logo" class="logo"/>
-    <div class="title">GeoToSchematic</div>
-  </div>
 
-  <div data-i18n="description" style="margin-top: 25px; margin-bottom: 10px; line-height: 1.5;"></div>
-  <div data-i18n="description2" style="font-size: 14px; margin-bottom: 35px;"></div>
+  <header>
+    <div>
+      <img src="images/btestylelogo.png" alt="logo" class="logo"/>
+      <h1 class="title">GeoToSchematic</h1>
+    </div>
 
-  <div style="width: 40%; display: flex;">
-    <input id="fileInput" class="nicebox" style="width: 260px;" type="file" accept=".kml,.geojson,.json" multiple/>
-    <span style="width: 10px;"></span>
-    <button id="export-button" class="nicebutton" style="width: 170px;" data-i18n="button_export"></button>
-  </div>
+    <p data-i18n="description" style="margin-top: 25px; margin-bottom: 10px; line-height: 1.5;"></p>
+    <p data-i18n="description2" style="font-size: 14px; margin-bottom: 35px;"></p>
+  </header>
 
-  <div id="status" data-i18n="status_import" style="margin-top: 20px; margin-bottom: 10px; text-align: left; font-weight: bold;">
-  </div>
+  <main>
+    <!--Import-->
+    <section aria-label="Import section" style="width: 40%; display: flex;">
+      <input id="fileInput" class="nicebox" style="width: 260px;" type="file" accept=".kml,.geojson,.json" multiple/>
+      <span style="width: 10px;"></span>
+      <button id="export-button" class="nicebutton" style="width: 170px;" data-i18n="button_export"></button>
+    </section>
 
-  <ul id="downloads"></ul>
+    <!--Status-->
+    <section aria-label="Current status">
+      <p id="status" data-i18n="status_import" style="margin-top: 20px; margin-bottom: 10px; text-align: left; font-weight: bold;">
+      </p>
+    </section>
 
-  <div style="margin-top: 10px; display: flex;"> 
-    <div class="nicebox" style="margin-bottom: auto;">
+    <section aria-label="Converted files list">
+      <ul id="downloads"></ul>
+    </section>
 
-      <!--Base settings-->
-      <div class="setting-title" data-i18n="basesettings"> </div>
-      
-      <hr class="nicehr">
+    <section aria-label="Conversion settings" style="margin-top: 10px; display: flex;"> 
+      <div aria-labelledby="basesettings" class="nicebox" style="margin-bottom: auto;">
 
-      <!--Contour block ID-->
-      <div style="margin-bottom: 10px; margin-top: 5px;">
-        <label for="blockId-input" data-i18n="blockid"></label>
-        <input id="blockId-input" type="text" class="nicebox" value="diamond_block" style="width: 110px;"/>
-      </div>
-
-      <hr class="nicehr">
-      <div>
-        <label class="setting-title" data-i18n="offset"></label>
-        <span class="tooltip">❔
-          <span class="tooltip-text" data-i18n="offset_tooltip">
-          </span>
-        </span>
-      </div>
-      
-      <div style="display: flex; margin-top: 10px; margin-bottom: 10px;">
+        <!--Base settings-->
+        <h2 class="setting-title" id="basesettings" data-i18n="basesettings"></h2>
         
-        <div style="margin-right: 5px; margin-left: 10px;"> 
+        <hr class="nicehr">
+
+        <!--Contour block ID-->
+        <div style="margin-bottom: 10px; margin-top: 5px;">
+          <label for="blockId-input" data-i18n="blockid"></label>
+          <input id="blockId-input" type="text" class="nicebox" value="diamond_block" style="width: 110px;"/>
+        </div>
+
+        <!--Offset-->
+        <hr class="nicehr">
+        <div>
+          <h3 class="setting-title" data-i18n="offset"></h3>
+          <span class="tooltip" role="tooltip">❔
+            <span class="tooltip-text" data-i18n="offset_tooltip">
+            </span>
+          </span>
+        </div>
+          
+        <div aria-label="Offset coordinates" style="margin: 10px 5px 0 10px;"> 
           <!--X Offset-->
           <div>
             <label for="doXOffset-input">X:</label>
@@ -229,76 +240,81 @@
           </div>
         </div>
 
-      </div>
-
-      <div style="margin-top:20px; margin-left: 5px;">
-        <label for="bteOffset-select" data-i18n="offset_preset" style="margin-bottom: 10px;"></label><br>
-        <select id="bteOffset-select" class="nicebox">
-          <option value="offsetNone">Default</option>
-          <option value="offsetAsean">BTE ASEAN</option>
-          <option value="offsetItaly">BTE Italia</option>
-          <option value="offsetBalkans">Team Balkans</option>
-          <option value="offsetRomania">BTE Romania+Moldova</option>
-        </select>
-      </div>
-
-      <hr class="nicehr">
-
-      <div>
-        <label class="setting-title" data-i18n="outputformat"></label>
-      </div>
-
-      <!--Output format-->
-      <div style="margin-bottom: 10px; margin-top: 5px; margin-left: 5px;">
-        <select class="nicebox" id="schematicver-select">
-          <option value="SpongeV3">Sponge schematic (1.13+)</option>
-          <option value="Legacy">Legacy schematic (1.7-1.12.2)</option>
-        </select>
-      </div>
-
-    </div>
-
-    <div style="display: grid; vertical-align: top; margin-left: 10px;">
-      <div class="nicebox" style="margin-bottom: auto; vertical-align: top;">
-        <div class="setting-title" data-i18n="terrainsettings"></div>
+        <!--Offset presets-->
+        <div style="margin-top:20px; margin-left: 5px;">
+          <label for="bteOffset-select" data-i18n="offset_preset" style="margin-bottom: 10px;"></label><br>
+          <select id="bteOffset-select" class="nicebox">
+            <option value="offsetNone">Default</option>
+            <option value="offsetAsean">BTE ASEAN</option>
+            <option value="offsetItaly">BTE Italia</option>
+            <option value="offsetBalkans">BTE Balkans</option>
+            <option value="offsetRomania">BTE România + Moldova</option>
+          </select>
+        </div>
 
         <hr class="nicehr">
 
-        <!--Consider elevation-->
-        <div style="margin-top: 15px; margin-bottom: 15px;">
-          <input type="checkbox" id="consElev-check" checked="true">
-          <label for="consElev-check" data-i18n="conselevation"></label>
-          <span class="tooltip">❔
-            <span class="tooltip-text" data-i18n="conselevation_tooltip">
-            </span>
-          </span>
+        <!--Output format-->
+        <h3 class="setting-title" id="outputformat" data-i18n="outputformat"></h3>
+        
+        <div style="margin-bottom: 10px; margin-top: 5px; margin-left: 5px;">
+          <select aria-labelledby="outputformat" class="nicebox" id="schematicver-select">
+            <option value="SpongeV3">Sponge schematic (1.13+)</option>
+            <option value="Legacy">Legacy schematic (1.12.2)</option>
+          </select>
         </div>
 
-        <!--Fill terrain-->
-        <div style="margin-top: 10px; margin-bottom: 10px;">
-          <input data-i18n="fillterrain" type="checkbox" id="doFill-check"/>
-          <label for="doFill-check" data-i18n="fillterrain"></label> 
-          <span class="tooltip">❔
-            <span class="tooltip-text" data-i18n="fillterrain_tooltip"></span>
-          </span>
-        </div>
-
-        <div>
-          <label for="fillBlockId-input" data-i18n="fillingblockid"></label>
-          <input id="fillBlockId-input" type="text" class="nicebox" value="emerald_block" style="width: 110px" disabled/>
-        </div>
       </div>
 
-    </div>
-    
-  </div>
+      <!--Terrain settings-->
+      <div aria-labelledby="terrainsettings" style="display: grid; vertical-align: top; margin-left: 10px; margin-bottom: auto;">
+        <div class="nicebox" style="margin-bottom: auto; vertical-align: top;">
+          <h2 class="setting-title" id="terrainsettings" data-i18n="terrainsettings"></h2>
 
-  <div data-i18n="privacynotice" style="margin-top: 20px; font-size: 14px"></div>
-  <a href="https://github.com/reyysun/geo-to-schematic">Source code</a>
+          <hr class="nicehr">
+
+          <!--Consider elevation-->
+          <div style="margin-top: 15px; margin-bottom: 15px;">
+            <input type="checkbox" id="consElev-check" checked="true">
+            <label for="consElev-check" data-i18n="conselevation"></label>
+            <span class="tooltip" role="tooltip">❔
+              <span class="tooltip-text" data-i18n="conselevation_tooltip">
+              </span>
+            </span>
+          </div>
+
+          <!--Fill terrain-->
+          <div style="margin-top: 10px; margin-bottom: 10px;">
+            <input data-i18n="fillterrain" type="checkbox" id="doFill-check"/>
+            <label for="doFill-check" data-i18n="fillterrain"></label> 
+            <span class="tooltip" role="tooltip">❔
+              <span class="tooltip-text" data-i18n="fillterrain_tooltip"></span>
+            </span>
+          </div>
+
+          <!--Fill block ID-->
+          <div>
+            <label for="fillBlockId-input" data-i18n="fillingblockid"></label>
+            <input id="fillBlockId-input" type="text" class="nicebox" value="emerald_block" style="width: 110px" disabled/>
+          </div>
+        </div>
+
+      </div>
+      
+    </section>
+  </main>
+
+  <footer>
+    <!--Privacy notice-->
+    <p data-i18n="privacynotice" style="margin-top: 20px; font-size: 14px"></p>
+    <a href="https://github.com/reyysun/geo-to-schematic">Source code</a>
+    
+    <!--Switch language-->
+    <section aria-label="Language switch" id="lang-switcher" class="langswitcher">
+      <button id="lang-ru" class="nicebutton langbutton">RU</button>
+      <button id="lang-en" class="nicebutton langbutton">EN</button>
+    </section>
+  </footer>
   
-  <div id="lang-switcher" class="langswitcher">
-    <button id="lang-ru" class="nicebutton langbutton">RU</button>
-    <button id="lang-en" class="nicebutton langbutton">EN</button>
-  </div>
 </body>
 </html>
