@@ -83,7 +83,7 @@ function fillTerrain(grid) {
                 cHeights = [fillTarget]
               }
             }
-            // И опорная ячейка переписывается на текущую ячейку
+            // И текущая ячейка становится новой опорной ячейкой
             leftAnchor = { pos: inner, heights: cHeights };
             buffer = [];
           }
@@ -98,7 +98,10 @@ function fillTerrain(grid) {
   // два прохода — по X и по Z
   scanlineFill('z'); // X-pass
   scanlineFill('x'); // Z-pass для того чтобы спустись поднятые изумруды и закрыть дыры
-  scanlineFill('-x'); // тот же Z-pass для спуска поднятых изюмов, но в обратном направлении
+  scanlineFill('-z'); //
+  scanlineFill('-x');
+  scanlineFill('z');
+  scanlineFill('x');
 }
 
 module.exports = fillTerrain;
