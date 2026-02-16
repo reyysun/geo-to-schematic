@@ -200,9 +200,6 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill
 
   // This is where it all begins...
   
-  if (schemVersion === 'Legacy' && doFill) 
-    // извините я хз как это починить пока что
-    { throw new Error("temporary cant do legacy with fill"); }
   const filesList = [];
   let originPoint;
 
