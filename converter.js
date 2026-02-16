@@ -13,7 +13,7 @@ const Schematic = require('./schematicformats')
 const fillTerrain = require('./fillterrain.js')
 
 
-function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill, fillBlockId) {
+function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSettings, foundationSettings) {
 
   // Преобразование координат в проекцию BTE и округление
   function getBTECoords(contours, consElev) {
@@ -44,7 +44,13 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill
       return btecoords
   }
 
-  function createSchematic(btecoords, blockId, offset, schemVersion, doFill, fillBlockId) {
+  function createSchematic(btecoords, blockId, offset, schemVersion, fillSettings, foundationSettings) {
+
+    const doFill = fillSettings[0];
+    const fillBlockId = fillSettings[1];
+    const makefoundation = foundationSettings[0];
+    const foundationBlockId = foundationSettings[1];
+    const foundationThickness = foundationSettings[2];
 
     const allCoords = Object.entries(btecoords).flatMap(([elev, lines]) =>
       (lines || []).flatMap(line => (line || []).map(([x, z]) => [x, z, Number(elev)]))
@@ -67,7 +73,11 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill
 
     const length = maxX - minX + 1; // size X
     const width  = maxZ - minZ + 1; // size Z
-    const height = maxY - minY + 1; // size Y
+    let height = maxY - minY + 1; // size Y
+
+    // Определение смещения всей схематики по толщине субстрата (foundationThickness)
+    const foundationOffset = makefoundation ? foundationThickness : 0;
+    height += foundationOffset;
 
     const totalSize = width * height * length;
     if (width > 32767 || length > 32767 || height > 2000 || totalSize > 5_000_000_000) {
@@ -91,6 +101,7 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill
     for (const [elevStr, lines] of Object.entries(btecoords)) {
       const elev = Number(elevStr);
       if (!lines) continue;
+
       for (const line of lines) {
         if (!line || line.length === 0) continue;
         if (line.length === 1) {
@@ -119,32 +130,55 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill
     const minecraftid = "minecraft:"
     const contourBlockId = minecraftid + (blockId ? blockId : "diamond_block");
     const fullFillBlockId = minecraftid + (fillBlockId ? fillBlockId : "emerald_block");
+    const fullfoundationBlockId = minecraftid + (foundationBlockId ? foundationBlockId : "stone")
+
+    // Составление палитры блоков
     const blockPalette = {
       "minecraft:air": { type: 'int', value: 0 },
       [contourBlockId]: { type: 'int', value: 1 },
-      ...(doFill && { [fullFillBlockId]: { type: 'int', value: 2 } }),
     };
+    let nextvalueid = 2;
+    let fillPaletteId;
+    let foundationPaletteId;
+    if (doFill) { 
+      blockPalette[fullFillBlockId] = { type: 'int', value: nextvalueid };
+      fillPaletteId = nextvalueid;
+      nextvalueid += 1;
+    }
+    if (makefoundation) {
+      blockPalette[fullfoundationBlockId] = { type: 'int', value: nextvalueid };
+      foundationPaletteId = nextvalueid;
+    }
 
+    // Заполнение сетки блоками
     for (let gz = 0; gz < width; gz++) {
       for (let gx = 0; gx < length; gx++) {
+        
         const cell = grid[gz][gx];
         if (!cell.type) continue;
 
         for (let i = 0; i < cell.elev.length; i++) { // Разбор каждого слоя Y на этой клетке в 2д сетке
-          const y = cell.elev[i] - minY;
+          const y = cell.elev[i] - minY + foundationOffset;
           if (y < 0 || y >= height) continue;
           const index = y * width * length + gz * length + gx;
-          const val = (cell.type === 'contour') ? 1 : 2;
+          const val = (cell.type === 'contour') ? 1 : fillPaletteId;
           if (blockData[index] === 0 || val === 1) blockData[index] = val;
         }
-        
+
+        if (makefoundation) {
+          for (let i = 0; i < foundationOffset; i++) {
+            const foundationLevel = Math.min(...cell.elev) - minY + i;
+            const index = foundationLevel * width * length + gz * length + gx;
+            blockData[index] = foundationPaletteId;
+          }
+        }
       }
     }
 
     // Сборка схемы
     const originPoint = [
       Math.ceil(minX) + offset[0], 
-      Math.ceil(minY) + offset[1], 
+      Math.ceil(minY) + offset[1] - foundationOffset, 
       Math.ceil(minZ) + offset[2]
     ];
     const size = { length, height, width };
@@ -206,7 +240,8 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, doFill
   for (const [geotext, filename] of geolist) {
 
     const contours = getBTECoords(geotext, consElev);
-    const schematicResult = createSchematic(contours, blockId, offset, schemVersion, doFill, fillBlockId);
+    const schematicResult = createSchematic(
+      contours, blockId, offset, schemVersion, fillSettings, foundationSettings);
     const schematic = schematicResult[0];
     originPoint = schematicResult[1];
 
