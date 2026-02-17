@@ -98,10 +98,7 @@ function fillTerrain(grid) {
   // два прохода — по X и по Z
   scanlineFill('z'); // X-pass
   scanlineFill('x'); // Z-pass для того чтобы спустись поднятые изумруды и закрыть дыры
-  scanlineFill('-z'); //
-  scanlineFill('-x');
-  scanlineFill('z');
-  scanlineFill('x');
+  scanlineFill('-x'); // тот же Z-pass для спуска поднятых изюмов, но в обратном направлении
 }
 
 module.exports = fillTerrain;
