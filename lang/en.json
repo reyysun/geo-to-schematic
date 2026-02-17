@@ -32,7 +32,7 @@
     "conselevation": "Consider elevation",
     "conselevation_tooltip": "Place objects at their expected height in the schematic based on their altitude value specified in the kml/geojson file.<hr>If unchecked, all objects will be on Y level 0, regardless of their altitude values. You can move them to another level using Y offset.",
     "fillterrain": "Fill terrain",
-    "fillterrain_tooltip": "Fill gaps between contour lines in a topographic schematic. <span style=\"color: red\">This is an experimental feature. There may be some misplaced blocks, but they are easy to spot and fix manually.</span><hr>Emerald blocks will be generated between all diamond blocks along the X and Z axes. The diamond contours themselves will remain intact. In order for this to work properly, there must be a vertical interval of 0-1 meter between contours, and they should not intersect.",
+    "fillterrain_tooltip": "Fill gaps between contour lines in a topographic schematic. <span style=\"color: red\">This is an experimental feature. It increases the overall processing time for large schematics. Also, there may be some misplaced blocks, but they are easy to spot and fix in-game manually.</span><hr>Emerald blocks will be generated between all diamond blocks along the X and Z axes (using scanline fill algorythm). The diamond contours themselves will remain intact. In order for this to work properly, there must be a vertical interval of 0-1 meter between contours, and they should not intersect.",
     "fillingblockid": "Filling block ID:",
     "makefoundation": "Add foundation",
     "makefoundation_tooltip": "Creates a foundation under all blocks in the schematic. This brings convenience to terraforming, particularly when working with falling blocks.",
