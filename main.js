@@ -28,6 +28,70 @@ bteOffsets.addEventListener('change', chooseOffsetPreset);
 doFillCheck.addEventListener('change', doFillClick);
 makeFoundationCheck.addEventListener('change', doFoundationClick);
 
+let converterLoaded = false;
+
+// Lazy loading of ultraconverter.min.js
+function loadConverter() {
+    return new Promise((resolve, reject) => {
+
+        if (converterLoaded) {
+            console.log('Converter already loaded')
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = './ultraconverter.min.js';
+
+        script.onload = () => {
+            console.log('Converter loaded');
+            converterLoaded = true;
+            resolve();
+        };
+
+        script.onerror = () => {
+            statusUpdate('Failed to load converter, check your connection to GitHub','salmon')
+            reject('Failed to load converter');
+        };
+
+        document.body.appendChild(script);
+    });
+}
+
+// "Export" button click
+async function start() {
+    const files = fileInput.files;
+    if (files.length == 0) {
+        statusUpdate('Upload a file first', 'salmon');
+        return
+    }
+    statusUpdate('Converting...', 'wheat');
+    
+    await loadConverter();
+
+    const promises = [];
+    try {
+        for (let i = 0; i < files.length; i++) {
+            const filePromise = processFile(files[i]);
+            const supposedName = files[i].name.substr(0, files[i].name.lastIndexOf('.'));;
+            const resultPromise = filePromise.then(parsedData => {
+                return [parsedData, supposedName]
+            })
+            promises.push(resultPromise);
+
+        }
+        const parsedDataList = await Promise.all(promises);
+        console.log('All promises done');
+        
+        processData(parsedDataList);
+
+    } catch (err) {
+        statusUpdate('Unknown error while processing your file =(', 'salmon');
+        console.log(err);
+        return
+    }
+}
+
 //
 function createExportFile(exportData) {
 
@@ -106,36 +170,7 @@ function processFile(file) {
     });
 }
 
-async function start() {
-    const files = fileInput.files;
-    if (files.length == 0) {
-        statusUpdate('Upload a file first', 'salmon');
-        return
-    }
-    statusUpdate('Converting...', 'wheat');
-    
-    const promises = [];
-    try {
-        for (let i = 0; i < files.length; i++) {
-            const filePromise = processFile(files[i]);
-            const supposedName = files[i].name.substr(0, files[i].name.lastIndexOf('.'));;
-            const resultPromise = filePromise.then(parsedData => {
-                return [parsedData, supposedName]
-            })
-            promises.push(resultPromise);
 
-        }
-        const parsedDataList = await Promise.all(promises);
-        console.log('All promises done');
-        
-        processData(parsedDataList);
-
-    } catch (err) {
-        statusUpdate('Unknown error while processing your file =(', 'salmon');
-        console.log(err);
-        return
-    }
-}
 
 function processData(parsedDataList) {
 
@@ -172,9 +207,11 @@ function processData(parsedDataList) {
     const fillSettings = [doFill, fillBlockId];
     const foundationSettings = [makeFoundation, foundationBlockId, foundationThickness];
 
+    const converter = window.convertGeoData;
+
     let result;
     try {
-        result = window.convertGeoData(
+        result = converter(
         parsedDataList, blockId, offset, schemVersion, consElev, fillSettings, foundationSettings)
         console.log('Successful conversion! Now doing download...')
 
