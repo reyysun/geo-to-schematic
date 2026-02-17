@@ -283,4 +283,7 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
   }
 }
 
-window.convertGeoData = convertGeoData;
+if (typeof window !== "undefined") {
+  window.convertGeoData = convertGeoData;
+}
+
