@@ -29,10 +29,13 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
             const convertedLine = []
 
             line.forEach(coord => {
-                convertedLine.push(
-                  terraconvert.fromGeo(coord[1],coord[0]) // Конвертация координат в проекцию BTE
-                  .map(n => Math.floor(n))   // Округление вниз до целого числа
-                )
+                if ((-90 < coord[0] && coord[0] < 90 && -180 < coord[1] && coord[1] < 180)) {
+                  convertedLine.push(
+                    terraconvert.fromGeo(coord[1],coord[0]) // Конвертация координат в проекцию BTE
+                    .map(n => Math.floor(n))   // Округление вниз до целого числа
+                  )
+                } else { throw new Error("Wrong coordinates format"); }
+                
             })
             
             // Добавляем сконвертированное в словарь btecoords
@@ -80,8 +83,19 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
     height += foundationOffset;
 
     const totalSize = width * height * length;
-    if (width > 32767 || length > 32767 || height > 2000 || totalSize > 5_000_000_000) {
+    if (width > 32767 || length > 32767 || height > 32767) {
+      console.log(`Too many blocks on one or more sides (maximum is 32767)! Width:${width}, length:${length}, height:${totalSize}`);
       throw new Error("Schematic too big");
+    }
+    else if (totalSize > 3_000_000_000) {
+      let verylarge = confirm(`The proposed schematic is very large. 
+        Please note that pasting such a schematic 
+        may be prohibited on your BTE server 
+        without the administration's consent.\n
+        Click "OK" to continue the conversion; "Cancel" to cancel the conversion.`);
+      if (!verylarge) {
+        throw new Error("Cancel converting");
+      }
     }
 
     // 2D grid [z][x]
@@ -276,7 +290,7 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
   // ОДИН ФАЙЛ СХЕМАТИКИ
   else if (filesList.length == 1) { // 1 файл в filesList
 
-    return [filesList[0][0], false, filesList[0][1]]
+    return [filesList[0][0], false, filesList[0][1], filesList[0][2]]
 
   } else {
     throw new Error("No data to process");
