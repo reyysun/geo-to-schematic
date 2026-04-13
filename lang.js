@@ -1,7 +1,10 @@
+const LANG_BASE_URL = 'https://raw.githubusercontent.com/reyysun/geo-to-schematic/main/lang'
+let currentTranslations = {};
+
 async function getSupportedLangs() {
   try {
     // Чтение index.json и получение всех доступных языков
-    const response = await fetch('lang/index.json');
+    const response = await fetch(`${LANG_BASE_URL}/index.json`);
     const data = await response.json();
     return data.languages;
   } catch {
@@ -10,17 +13,15 @@ async function getSupportedLangs() {
 }
 
 async function loadLanguage(langCode) {
-  console.log(langCode)
+  console.log('Loading lang:', langCode);
+
   try {
-    const response = await fetch(`lang/${langCode}.json`);
-    const translations = await response.json();
+    const response = await fetch(`${LANG_BASE_URL}/${langCode}.json?t=${Date.now()}`);
+    currentTranslations = await response.json();
 
     // Пробегаем по всем элементам с data-i18n
     document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.getAttribute('data-i18n');
-      if (translations[key]) {
-        el.innerHTML = translations[key]; // используем innerHTML, т.к. есть <b>
-      }
+      translateElement(el);
     });
 
     // Сохраняем выбор языка в localStorage
@@ -28,6 +29,19 @@ async function loadLanguage(langCode) {
   } catch (err) {
     console.error(`Error loading language file: ${langCode}`, err);
   }
+}
+
+function translateElement(el) {
+  const key = el.getAttribute('data-i18n');
+  if (key && currentTranslations[key]) {
+    el.innerHTML = currentTranslations[key];
+  }
+}
+
+export function getTranslationByKey(key) {
+  console.log(currentTranslations);
+  console.log('RESULT: ',currentTranslations[key])
+  return currentTranslations[key];
 }
 
 // При загрузке страницы подгружаем последний выбранный язык
