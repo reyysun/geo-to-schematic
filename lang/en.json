@@ -55,5 +55,6 @@
     "alert_error_wrongextension": "Only .kml and .geojson files are supported",
     "alert_error_wrongid": "Please enter a valid Minecraft block ID. Only text IDs are supported",
     "alert_error_offset": "Please enter correct offset values. Offset values can only be integers",
-    "alert_toomuchvolume": "The proposed schematic has a very large volume of blocks. Please note that pasting such a schematic may be prohibited on your BTE server without the administration's consent.\nClick \"OK\" to continue the conversion; \"Cancel\" to cancel the conversion."
+    "alert_error_differentid": "Block IDs must be different",
+    "alert_toomuchvolume": "The proposed schematic has a very large volume of blocks. Please note that pasting such a schematic may be prohibited on servers without the administration's consent.\nClick \"OK\" to continue the conversion; \"Cancel\" to cancel the conversion."
 }
