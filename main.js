@@ -1,4 +1,5 @@
 import { KMLParse, GeojsonParse } from './geoparser.js'
+import { getTranslationByKey } from './lang.js'
 
 // Загрузка фона
 document.body.classList.add('bg-loaded');
@@ -50,7 +51,7 @@ function loadConverter() {
         };
 
         script.onerror = () => {
-            statusUpdate('Failed to load converter, check your connection to GitHub','salmon')
+            statusUpdate('status_error_loadconverter','salmon')
             reject('Failed to load converter');
         };
 
@@ -62,10 +63,10 @@ function loadConverter() {
 async function start() {
     const files = fileInput.files;
     if (files.length == 0) {
-        statusUpdate('Upload a file first', 'salmon');
+        statusUpdate('status_upload', 'salmon');
         return
     }
-    statusUpdate('Converting...', 'wheat');
+    statusUpdate('status_converting', 'wheat');
     
     await loadConverter();
 
@@ -86,7 +87,7 @@ async function start() {
         processData(parsedDataList);
 
     } catch (err) {
-        statusUpdate('Unknown error while processing your file =(', 'salmon');
+        statusUpdate('status_error_whileprocessing', 'salmon');
         console.log(err);
         return
     }
@@ -118,18 +119,37 @@ function createExportFile(exportData) {
     name += ext;
     
 
-    var blob = new Blob([toExport], {type: blobtype});
-    var link = document.createElement('a');
+    const blob = new Blob([toExport], {type: blobtype});
+    const listelement = document.createElement('div');
+    const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
     link.download = name;
     link.innerHTML = 'Download ' + name;
     link.click();
-    var li = document.createElement('li');
-    li.appendChild(link);
+    
+    listelement.appendChild(link);
+    
     //li.appendChild(document.createTextNode(` (${result[1].join(' ')})`)) // result[1] - это originalPoint
+    
+    if (exportData[3]) {
+        const explanationText = getTranslationByKey('originexplanation')
+        const origin = document.createElement('span');
+        origin.classList.add('tooltip');
+        origin.innerHTML='🎯'
+        const originTooltip = document.createElement('span')
+        originTooltip.classList.add('tooltip-text');
+        originTooltip.innerHTML=`<strong>Origin block: ${exportData[3].join(' ')}.</strong>
+        <hr><span>${explanationText}</span>`
+        origin.appendChild(originTooltip)
+        listelement.appendChild(origin);
+    }
+
+    const li = document.createElement('li');
+    li.appendChild(listelement)
     document.querySelector('#downloads').appendChild(li);
 
-    statusUpdate('Success! Use "//paste -a -o" to correctly place your schematic', 'MediumSeaGreen');
+
+    statusUpdate('status_success', 'MediumSeaGreen');
 
 }
 
@@ -148,7 +168,7 @@ function processFile(file) {
             } else if (name.endsWith('.geojson') || name.endsWith('.json')) {
                 fileType = 'geojson'
             } else {
-                alert('Only .kml and .geojson files are supported')
+                alert(getTranslationByKey['alert_error_wrongextension'])
                 return
             }
 
@@ -161,7 +181,7 @@ function processFile(file) {
             }
             catch (err) {
                 console.log(err)
-                statusUpdate('Error while reading the file. Does it contain geodata?', 'salmon');
+                statusUpdate('status_error', 'salmon');
                 return
             }
         }
@@ -195,12 +215,13 @@ function processData(parsedDataList) {
     console.log('schemVersion: ',schemVersion);
 
     function isDigit(str) {return /[^0-9]/.test(str)}
+    // Если 
     if ( !isDigit(blockId) || !isDigit(fillBlockId) || !isDigit(foundationBlockId) ) {
-        alert('Please enter a valid Minecraft block ID. Only text IDs are supported');
+        alert(getTranslationByKey('alert_error_wrongid'));
         return
     }
     else if (!offset.every(item => Number.isInteger(item))) {
-        alert('Please enter correct offset values. Offset values can only be integers')
+        alert(getTranslationByKey('alert_error_offset'));
         return
     }
 
@@ -208,33 +229,34 @@ function processData(parsedDataList) {
     const foundationSettings = [makeFoundation, foundationBlockId, foundationThickness];
 
     const converter = window.convertGeoData;
+    // Получение текста сообщения о слишком большом объеме блоков, на случай, если он пригодится
+    const largeConfirmation = getTranslationByKey('alert_toomuchvolume')
 
     let result;
     try {
         result = converter(
-        parsedDataList, blockId, offset, schemVersion, consElev, fillSettings, foundationSettings)
+        parsedDataList, blockId, offset, schemVersion, consElev, fillSettings, foundationSettings, largeConfirmation)
         console.log('Successful conversion! Now doing download...')
 
     } catch (err) {
-        if (err.message === "Schematic too big") {
-        statusUpdate(
-            `Hold on, your file is too big for one schematic! 
-            How about splitting it into smaller ones?`, 'salmon'
-        )
+        switch (err.message) {
+            case "Schematic too big":
+                statusUpdate('status_error_exceedminecraftlimit', 'salmon');
+                break;
+            case "Wrong block id":
+                // This can occur only if Legacy schematic selected
+                statusUpdate('status_error_wronglegacyid', 'salmon');
+                break;
+            case "Wrong coordinates format":
+                statusUpdate('status_error_wrongcoordsformat', 'salmon');
+                break;
+            case "Cancel converting":
+                statusUpdate('status_cancel', 'salmon');
+                break;
+            default:
+                statusUpdate('status_error_unknown', 'salmon');
         }
-        else if (err.message === "Wrong block id") {
-        // This can occur only if Legacy schematic selected
-        statusUpdate(`Wrong block ID, please use text IDs of blocks
-                        that are presented in 1.12.2`, 'salmon')
-        }
-        else if (err.message === "temporary cant do legacy with fill") {
-        statusUpdate(`Sorry, it's currently not possible to apply 
-                        terrain fill to Legacy schematics. Please use 
-                        Sponge schematics.`, 'salmon')
-        }
-        else { statusUpdate(
-        'Unknown error =(', 'salmon') }
-        console.log(err)
+        console.log(err);
         return
     } finally {
         fileInput.value = null;
@@ -256,6 +278,9 @@ function chooseOffsetPreset(e) {
         break
     case 'offsetItaly':
         applyOffset(0, -2016, 0);
+        break
+    case 'offsetAsia':
+        applyOffset(0, -1872, 0);
         break
     case 'offsetRomania':
         applyOffset(0, -544, 0);
@@ -285,7 +310,8 @@ function doFoundationClick() {
     foundationThicknessBox.disabled = !enabled;
 }
 
-function statusUpdate(text, color) {
+function statusUpdate(langKey, color) {
+    const text = getTranslationByKey(langKey);
     statusText.textContent = text;
-    statusText.style.color = color
+    statusText.style.color = color;
 }
