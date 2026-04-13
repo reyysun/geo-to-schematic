@@ -11,14 +11,20 @@
     "status_import": "",
     "status_converting": "Converting...",
     "status_success": "Success! Use \"//paste -a -o\" to correctly place your schematic",
+    "status_cancel": "Conversion canceled",
+    "status_upload": "Upload a file first",
     "status_error": "Error while reading the file. Please make sure that your file is correct",
     "status_error_toobig": "Hold on, your file is too big for one schematic! How about splitting it into smaller ones?",
     "status_error_wronglegacyid": "Wrong block ID, please use text IDs of blocks that are presented in 1.12.2",
+    "status_error_exceedminecraftlimit": "The size of the proposed schematic exceeds the limits set by Minecraft",
+    "status_error_wrongcoordsformat": "Your file contains coordinates in an unsupported format. The coordinates of each point must be expressed as latitude and longitude (and, optionally, altitude) as decimal degrees",
+    
+    "originexplanation": "These coordinates are needed for some cases, e.g. if you're using Litematica. With WorldEdit, just use //paste with \"-o\" flag. Pasting it without the flag will result in the schematic being inserted in an unexpected location in your world!",
 
-    "basesettings": "🛠️ Base settings",
+    "basesettings": "🛠️ General settings",
     "blockid": "Contours block ID:",
     "offset": "↔️ Offset",
-    "offset_tooltip": "Additional schematic offset.<hr>Some BTE servers have an additional world offset. This offset will be added to the original schematic coordinates. <span style=\"color:red\">Most servers don't have an additional offset, please check offset presets.</span>",
+    "offset_tooltip": "Additional schematic offset.<hr>Some BTE servers have an additional world offset. Enter this offset here, and it will be added to the schematic's original BTE-projection coordinates. <span style=\"color:red\">Most servers don't have an additional offset, so check the \"Offset presets\".</span>",
     "offset_preset": "Offset preset",
     "offset_preset1": "BTE ASEAN offset",
     "offset_preset2": "BTE Italy offset",
@@ -32,7 +38,7 @@
     "conselevation": "Consider elevation",
     "conselevation_tooltip": "Place objects at their expected height in the schematic based on their altitude value specified in the kml/geojson file.<hr>If unchecked, all objects will be on Y level 0, regardless of their altitude values. You can move them to another level using Y offset.",
     "fillterrain": "Fill terrain",
-    "fillterrain_tooltip": "Fill gaps between contour lines in a topographic schematic. <span style=\"color: red\">This is an experimental feature. It increases the overall processing time for large schematics. Also, there may be some misplaced blocks, but they are easy to spot and fix in-game manually.</span><hr>Emerald blocks will be generated between all diamond blocks along the X and Z axes (using scanline fill algorythm). The diamond contours themselves will remain intact. In order for this to work properly, there must be a vertical interval of 0-1 meter between contours, and they should not intersect.",
+    "fillterrain_tooltip": "Fill gaps between contour lines in a topographic schematic. <span style=\"color: red\">This is an experimental feature. It increases the overall processing time for large schematics. There may also be blocks that are placed 1 block lower than they should be, but they are easy to spot and fix in-game manually.</span><hr>Emerald blocks will be generated between all diamond blocks along the X and Z axes (using scanline fill algorythm). The diamond contours themselves will remain intact. In order for this to work properly, there must be a vertical interval of 0-1 meter between contours, and they should not intersect.",
     "fillingblockid": "Filling block ID:",
     "makefoundation": "Add foundation",
     "makefoundation_tooltip": "Creates a foundation under all blocks in the schematic. This brings convenience to terraforming, particularly when working with falling blocks.",
@@ -44,5 +50,6 @@
 
     "error_wrongextension": "Only .kml and .geojson files are supported",
     "error_wrongid": "Please enter a valid Minecraft block ID. Only text IDs are supported",
-    "error_offset": "Please enter correct offset values. Offset values can only be integers"
+    "error_offset": "Please enter correct offset values. Offset values can only be integers",
+    "alert_toobig": "The proposed schematic has a very large volume of blocks. Please note that pasting such a schematic may be prohibited on your BTE server without the administration's consent.\nClick \"OK\" to continue the conversion; \"Cancel\" to cancel the conversion."
 }
