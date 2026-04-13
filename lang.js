@@ -39,8 +39,6 @@ function translateElement(el) {
 }
 
 export function getTranslationByKey(key) {
-  console.log(currentTranslations);
-  console.log('RESULT: ',currentTranslations[key])
   return currentTranslations[key];
 }
 
