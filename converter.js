@@ -13,7 +13,7 @@ const Schematic = require('./schematicformats')
 const fillTerrain = require('./fillterrain.js')
 
 
-function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSettings, foundationSettings) {
+function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSettings, foundationSettings, largeConfirmation) {
 
   // Преобразование координат в проекцию BTE и округление
   function getBTECoords(contours, consElev) {
@@ -29,12 +29,12 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
             const convertedLine = []
 
             line.forEach(coord => {
-                if ((-90 < coord[0] && coord[0] < 90 && -180 < coord[1] && coord[1] < 180)) {
+                if ((-180 < coord[0] && coord[0] < 180 && -90 < coord[1] && coord[1] < 90)) {
                   convertedLine.push(
                     terraconvert.fromGeo(coord[1],coord[0]) // Конвертация координат в проекцию BTE
                     .map(n => Math.floor(n))   // Округление вниз до целого числа
                   )
-                } else { throw new Error("Wrong coordinates format"); }
+                } else { console.log(coord); throw new Error("Wrong coordinates format"); }
                 
             })
             
@@ -47,7 +47,7 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
       return btecoords
   }
 
-  function createSchematic(btecoords, blockId, offset, schemVersion, fillSettings, foundationSettings) {
+  function createSchematic(btecoords, blockId, offset, schemVersion, fillSettings, foundationSettings, largeConfirmation) {
 
     const doFill = fillSettings[0];
     const fillBlockId = fillSettings[1];
@@ -83,16 +83,14 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
     height += foundationOffset;
 
     const totalSize = width * height * length;
+    console.log(`Width: ${width}, Length: ${length}, Height: ${height}, Total size: ${totalSize}`);
+
     if (width > 32767 || length > 32767 || height > 32767) {
-      console.log(`Too many blocks on one or more sides (maximum is 32767)! Width:${width}, length:${length}, height:${totalSize}`);
+      console.log(`Too many blocks on one or more sides (maximum is 32767)!`);
       throw new Error("Schematic too big");
     }
     else if (totalSize > 3_000_000_000) {
-      let verylarge = confirm(`The proposed schematic is very large. 
-        Please note that pasting such a schematic 
-        may be prohibited on your BTE server 
-        without the administration's consent.\n
-        Click "OK" to continue the conversion; "Cancel" to cancel the conversion.`);
+      let verylarge = confirm(largeConfirmation);
       if (!verylarge) {
         throw new Error("Cancel converting");
       }
@@ -255,7 +253,7 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
 
     const contours = getBTECoords(geotext, consElev);
     const schematicResult = createSchematic(
-      contours, blockId, offset, schemVersion, fillSettings, foundationSettings);
+      contours, blockId, offset, schemVersion, fillSettings, foundationSettings, largeConfirmation);
     const schematic = schematicResult[0];
     originPoint = schematicResult[1];
 
