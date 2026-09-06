@@ -85,13 +85,13 @@
       text-decoration: underline;
     }
     .nicebutton {
+      display: inline-block;
       background-color: #525252;
       color: #f0f0f0;
       border: 1px solid #888888;
       padding: 6px;
       border-radius: 4px;
       margin-top: 5px;
-      display: inline-block;
       font-family: inherit;
     }
     .langswitcher {
@@ -118,7 +118,7 @@
 
     .tooltip {
       position: relative;
-      display: inline-block;
+      margin-left: auto;
       cursor: help;
     }
 
@@ -160,6 +160,19 @@
     button {
       cursor: pointer;
       width: 100%;
+    }
+
+    .cell {
+      background: white;
+      box-sizing: border-box;
+    }
+
+    .blue {
+      background: blue;
+    }
+
+    .green {
+      background: green;
     }
     
   </style>
@@ -206,12 +219,12 @@
         <!--Contour block ID-->
         <div style="margin-bottom: 10px; margin-top: 5px;">
           <label for="blockId-input" data-i18n="blockid"></label>
-          <input id="blockId-input" type="text" class="nicebox" value="diamond_block" style="width: 110px;"/>
+          <input id="blockId-input" type="text" class="nicebox" value="diamond_block" style="width: 100px;"/>
         </div>
 
         <!--Offset-->
         <hr class="nicehr">
-        <div>
+        <div style="display: flex;">
           <h3 class="setting-title" data-i18n="offset"></h3>
           <span class="tooltip" role="tooltip">❔
             <span class="tooltip-text" data-i18n="offset_tooltip">
@@ -245,10 +258,10 @@
           <select id="bteOffset-select" class="nicebox">
             <option value="offsetNone">Default</option>
             <option value="offsetAsean">BTE ASEAN</option>
-            <option value="offsetItaly">BTE Italia</option>
             <option value="offsetAsia">BTE Asia</option>
             <option value="offsetBalkans">BTE Balkans</option>
-            <option value="offsetRomania">BTE România + Moldova</option>
+            <option value="offsetItaly">BTE Italia</option>
+            <option value="offsetRomania">România în Minecraft</option>
           </select>
         </div>
 
@@ -274,7 +287,7 @@
           <hr class="nicehr">
 
           <!--Consider elevation-->
-          <div style="margin-top: 15px; margin-bottom: 15px;">
+          <div style="margin-top: 15px; margin-bottom: 15px; display: flex;">
             <input type="checkbox" id="consElev-check" checked="true">
             <label for="consElev-check" data-i18n="conselevation"></label>
             <span class="tooltip" role="tooltip">❔
@@ -285,25 +298,8 @@
 
           <hr class="nicehr">
 
-          <!--Fill terrain-->
-          <div style="margin-top: 10px; margin-bottom: 10px;">
-            <input data-i18n="fillterrain" type="checkbox" id="doFill-check"/>
-            <label for="doFill-check" data-i18n="fillterrain"></label> 
-            <span class="tooltip" role="tooltip">❔
-              <span class="tooltip-text" data-i18n="fillterrain_tooltip"></span>
-            </span>
-          </div>
-
-          <!--Fill block ID-->
-          <div>
-            <label for="fillBlockId-input" data-i18n="fillingblockid"></label>
-            <input id="fillBlockId-input" type="text" class="nicebox" value="emerald_block" style="width: 110px" disabled/>
-          </div>
-
-          <hr class="nicehr">
-
           <!--Make foundation-->
-          <div style="margin-top: 10px; margin-bottom: 10px;">
+          <div style="margin-top: 10px; margin-bottom: 10px; display: flex;">
             <input id="make-foundation" type="checkbox" class="nicebox"/>
             <label for="make-foundation" data-i18n="makefoundation"></label>
             <span class="tooltip" role="tooltip">❔
@@ -315,7 +311,7 @@
           <!--Foundation block ID-->
           <div style="margin-top: 10px; margin-bottom: 10px;">
             <label for="foundationBlockId-input" data-i18n="foundationblockid"></label>
-            <input id="foundationBlockId-input" type="text" class="nicebox" value="stone" style="width: 85px" disabled/>
+            <input id="foundationBlockId-input" type="text" class="nicebox" value="stone" style="width: 100px" disabled/>
           </div>
 
           <!--Foundation thickness-->
@@ -324,8 +320,46 @@
             <input id="foundationThickness-input" type="number" class="nicebox" value="3" min="1" max="10" style="width: 30px;" disabled/>
           </div>
 
+          <hr class="nicehr">
+
+          <p data-i18n="experimental" style="color:salmon;"></p>
+          <!--Fill terrain-->
+          <div style="margin-top: 10px; margin-bottom: 10px; display: flex;">
+            <input data-i18n="fillterrain" type="checkbox" id="doFill-check"/>
+            <label for="doFill-check" data-i18n="fillterrain"></label> 
+            <span class="tooltip" role="tooltip">❔
+              <span class="tooltip-text" data-i18n="fillterrain_tooltip"></span>
+            </span>
+          </div>
+
+          <!--Fill block ID-->
+          <div>
+            <label for="fillBlockId-input" data-i18n="fillingblockid"></label>
+            <input id="fillBlockId-input" type="text" class="nicebox" value="emerald_block" style="width: 100px; margin-right: auto;" disabled/>
+          </div>
+
+          <hr class="nicehr">
+
+          <!--Interpolate contours-->
+          <div style="margin-top: 10px; margin-bottom: 10px; display: flex;">
+            <input id="interpolate-contours" type="checkbox" class="nicebox"/>
+            <label for="interpolate-contours" data-i18n="interpolatecontours"></label>
+            <span class="tooltip" role="tooltip">❔
+              <span class="tooltip-text" data-i18n="interpolatecontours_tooltip"></span>
+            </span>
+          </div>
+
         </div>
 
+      </div>
+      
+      <!--Schematic preview-->
+      <div id="preview" class="nicebox" style="justify-content: center; vertical-align: top; margin-left: 10px; margin-bottom: auto;">
+        <canvas id="preview-canvas" style="display: grid; border: 1px solid #999;"></canvas>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <label for="hidepreview-button" data-i18n="schempreview"></label>
+          <button id="hidepreview-button" data-i18n="on" class="nicebutton" style="color: lime; width: 50px;"></button>
+        </div>
       </div>
       
     </section>

@@ -13,6 +13,7 @@ const blockIdInput = document.getElementById('blockId-input');
 const XOffsetInput = document.getElementById('doXOffset-input');
 const YOffsetInput = document.getElementById('doYOffset-input');
 const ZOffsetInput = document.getElementById('doZOffset-input');
+const bteOffsets = document.getElementById('bteOffset-select');
 
 const formatBox = document.getElementById('schematicver-select');
 const consElevCheck = document.getElementById('consElev-check');
@@ -20,16 +21,21 @@ const doFillCheck = document.getElementById('doFill-check');
 const fillBlockIdBox = document.getElementById('fillBlockId-input');
 const makeFoundationCheck = document.getElementById('make-foundation');
 const foundationBlockIdBox = document.getElementById('foundationBlockId-input');
-const foundationThicknessBox = document.getElementById('foundationThickness-input')
-const bteOffsets = document.getElementById('bteOffset-select');
+const foundationThicknessBox = document.getElementById('foundationThickness-input');
+const interpolateCheck = document.getElementById('interpolate-contours');
+
+const previewCanvas = document.getElementById('preview-canvas');
+const previewButton = document.getElementById('hidepreview-button');
 
 // Хэндлеры
 exportButton.addEventListener('click', start);
+previewButton.addEventListener('click', previewEnableClick)
 bteOffsets.addEventListener('change', chooseOffsetPreset);
 doFillCheck.addEventListener('change', doFillClick);
 makeFoundationCheck.addEventListener('change', doFoundationClick);
 
 let converterLoaded = false;
+let previewEnabled = true;
 
 // Lazy loading of ultraconverter.min.js
 function loadConverter() {
@@ -42,7 +48,7 @@ function loadConverter() {
         }
 
         const script = document.createElement('script');
-        script.src = './ultraconverter.min.js';
+        script.src = './ultraconverter.js';
 
         script.onload = () => {
             console.log('Converter loaded');
@@ -99,6 +105,8 @@ function createExportFile(exportData) {
     const toExport = exportData[0]
     const isZip = exportData[1]
     let name = exportData[2]
+    const originPoint = exportData[3]
+    const visualizationData = exportData[4]
     if (!name) { name = 'geotoschematic' }
     
     let ext;
@@ -131,26 +139,106 @@ function createExportFile(exportData) {
     
     //li.appendChild(document.createTextNode(` (${result[1].join(' ')})`)) // result[1] - это originalPoint
     
-    if (exportData[3]) {
+    if (originPoint) {
         const explanationText = getTranslationByKey('originexplanation')
         const origin = document.createElement('span');
         origin.classList.add('tooltip');
         origin.innerHTML='🎯'
         const originTooltip = document.createElement('span')
         originTooltip.classList.add('tooltip-text');
-        originTooltip.innerHTML=`<strong>Origin block: ${exportData[3].join(' ')}.</strong>
+        originTooltip.innerHTML=`<strong>Origin block: ${originPoint.join(' ')}.</strong>
         <hr><span>${explanationText}</span>`
         origin.appendChild(originTooltip)
         listelement.appendChild(origin);
     }
-
+    
     const li = document.createElement('li');
     li.appendChild(listelement)
     document.querySelector('#downloads').appendChild(li);
-
+    
+    if (visualizationData && previewEnabled) {
+        visualize(visualizationData);
+    }
 
     statusUpdate('status_success', 'MediumSeaGreen');
 
+}
+
+function visualize(data) {
+    const ctx = previewCanvas.getContext("2d");
+    const grid = data[0];
+    const minElev = data[1];
+    const maxElev = data[2];
+
+    const rows = grid.length;
+    const cols = grid[0].length;
+
+    const scale = Math.min(
+        375 / cols,
+        375 / rows
+    );
+
+    const width = Math.floor(cols * scale);
+    const height = Math.floor(rows * scale);
+
+    previewCanvas.width = width;
+    previewCanvas.height = height;
+
+    ctx.imageSmoothingEnabled = false;
+
+    // Не делаем минимальную высоту совсем черной.
+    // Яркость будет от 30% до 100%.
+    let minBrightness = 0.3;
+    if (maxElev - minElev < 4) {
+        minBrightness = 0.7
+    }
+
+    // Рисуем
+    for (let gz = 0; gz < rows; gz++) {
+        for (let gx = 0; gx < cols; gx++) {
+
+            const cell = grid[gz][gx];
+
+            if (
+                cell.type !== "contour" &&
+                cell.type !== "filled"
+            ) {
+                continue;
+            }
+
+            // Нормализованная высота 0..1
+            let normalized;
+
+            if (maxElev === minElev) {
+                normalized = 1;
+            } else {
+                normalized =
+                    (Math.max(...cell.elev) - minElev) /
+                    (maxElev - minElev);
+            }
+
+            const brightness =
+                minBrightness +
+                normalized * (1 - minBrightness);
+
+            const value = Math.round(255 * brightness);
+
+            if (cell.type === "contour") {
+                // Синий: от темно-синего до ярко-синего
+                ctx.fillStyle = `rgb(0, 0, ${value})`;
+            } else {
+                // Зеленый: от темно-зеленого до ярко-зеленого
+                ctx.fillStyle = `rgb(0, ${value}, 0)`;
+            }
+
+            ctx.fillRect(
+                Math.floor(gx * scale),
+                Math.floor(gz * scale),
+                Math.ceil(scale),
+                Math.ceil(scale)
+            );
+        }
+    }
 }
 
 function processFile(file) {
@@ -190,22 +278,21 @@ function processFile(file) {
     });
 }
 
-
-
 function processData(parsedDataList) {
 
-    const blockId = blockIdInput.value;
-    const xOffset = parseInt(XOffsetInput.value);
-    const yOffset = parseInt(YOffsetInput.value);
-    const zOffset = parseInt(ZOffsetInput.value);
+    const blockId = blockIdInput.value.trim();
+    const xOffset = parseInt(XOffsetInput.value.trim());
+    const yOffset = parseInt(YOffsetInput.value.trim());
+    const zOffset = parseInt(ZOffsetInput.value.trim());
     const offset = [xOffset, yOffset, zOffset];
     const consElev = consElevCheck.checked;
     const doFill = doFillCheck.checked;
     const schemVersion = formatBox.value;
-    const fillBlockId = fillBlockIdBox.value;
+    const fillBlockId = fillBlockIdBox.value.trim();
     const makeFoundation = makeFoundationCheck.checked;
-    const foundationBlockId = foundationBlockIdBox.value;
+    const foundationBlockId = foundationBlockIdBox.value.trim();
     const foundationThickness = parseInt(foundationThicknessBox.value);
+    const interpolate = interpolateCheck.checked;
 
     console.log('blockId: ',blockId);
     console.log('offset: ',offset);
@@ -215,11 +302,21 @@ function processData(parsedDataList) {
     console.log('schemVersion: ',schemVersion);
 
     function isDigit(str) {return /[^0-9]/.test(str)}
-    // Если 
-    if ( !isDigit(blockId) || !isDigit(fillBlockId) || !isDigit(foundationBlockId) ) {
-        alert(getTranslationByKey('alert_error_wrongid'));
-        return
+    // Проверка всех инпутов
+    const blockinput = [blockId, fillBlockId, foundationBlockId];
+    let blockinputvalid = true;
+    for (let i = 0; i<blockinput.length; i++) {
+        if (!isDigit(blockinput[i])) {
+            alert(getTranslationByKey('alert_error_wrongid'));
+            blockinputvalid = false;
+            return
+        } else if (blockinput[i] == 'air') {
+            alert(getTranslationByKey('alert_air'));
+            blockinputvalid = false;
+            return
+        }
     }
+    if (!blockinputvalid) { return }
     else if (!offset.every(item => Number.isInteger(item))) {
         alert(getTranslationByKey('alert_error_offset'));
         return
@@ -235,7 +332,7 @@ function processData(parsedDataList) {
     let result;
     try {
         result = converter(
-        parsedDataList, blockId, offset, schemVersion, consElev, fillSettings, foundationSettings, largeConfirmation)
+        parsedDataList, blockId, offset, schemVersion, consElev, fillSettings, foundationSettings, largeConfirmation, interpolate, previewEnabled)
         console.log('Successful conversion! Now doing download...')
 
     } catch (err) {
@@ -308,6 +405,20 @@ function doFoundationClick() {
     const enabled = makeFoundationCheck.checked;
     foundationBlockIdBox.disabled = !enabled;
     foundationThicknessBox.disabled = !enabled;
+}
+
+function previewEnableClick() {
+    if (previewEnabled) {
+        previewCanvas.style.display = "none";
+        previewButton.textContent = getTranslationByKey('off')
+        previewButton.style.color = 'salmon';
+        previewEnabled = false
+    } else {
+        previewCanvas.style.display = "grid";
+        previewButton.textContent = getTranslationByKey('on')
+        previewButton.style.color = 'lime';
+        previewEnabled = true
+    }
 }
 
 function statusUpdate(langKey, color) {
