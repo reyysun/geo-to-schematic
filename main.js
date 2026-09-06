@@ -48,7 +48,7 @@ function loadConverter() {
         }
 
         const script = document.createElement('script');
-        script.src = './ultraconverter.js';
+        script.src = './ultraconverter.min.js';
 
         script.onload = () => {
             console.log('Converter loaded');
