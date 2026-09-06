@@ -18,36 +18,67 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
 
   // Преобразование координат в проекцию BTE и округление
   function getBTECoords(contours, consElev) {
-      const btecoords = {};
-      let mcheight;
+    const btecoords = {};
 
-      for (const [elev, lines] of Object.entries(contours)) {
-        
-        if (consElev) { mcheight = elev - 1 }
-        else { mcheight = 0 };
+    // Переменные для границ будущей схематики
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minZ = Infinity;
+    let maxZ = -Infinity;
+    let minElev = Infinity;
+    let maxElev = -Infinity;
 
-        lines.forEach(line => {
+    for (const [elev, lines] of Object.entries(contours)) {
+
+        const elevation = Number(elev);
+
+        if (elevation < minElev) minElev = elevation;
+        if (elevation > maxElev) maxElev = elevation;
+
+        // Учитывать ли высоту
+        // Вычитается 1, чтобы в игре в F3 отображалась высота, когда игрок стоит на контуре
+        const mcheight = consElev ? elevation - 1 : 0;
+
+        for (const line of lines) {
             const convertedLine = [];
 
-            line.forEach(coord => {
-                if ((-180 < coord[0] && coord[0] < 180 && -90 < coord[1] && coord[1] < 90)) {
-                  convertedLine.push(
-                    terraconvert.fromGeo(coord[1],coord[0]) // Конвертация координат в проекцию BTE
-                    .map(n => Math.floor(n))   // Округление вниз до целого числа
-                  )
-                } else { console.log(coord); throw new Error("Wrong coordinates format"); }
-                
-            })
-            
-            // Добавляем сконвертированное в словарь btecoords
-            if (!btecoords[mcheight]) {btecoords[mcheight] = []};
-            
-            btecoords[mcheight].push(convertedLine);
-        })
+            for (const coord of line) {
+                if (
+                    -180 < coord[0] &&
+                    coord[0] < 180 &&
+                    -90 < coord[1] &&
+                    coord[1] < 90
+                ) {
+                    const [x, z] = terraconvert
+                        .fromGeo(coord[1], coord[0]) // Конвертация координат в проекцию BTE
+                        .map(n => Math.floor(n)); // Округление вниз до целого числа
 
-      }
-      return btecoords
-  };
+                    convertedLine.push([x, z]);
+
+                    // Определение границ схематики
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+
+                    if (z < minZ) minZ = z;
+                    if (z > maxZ) maxZ = z;
+
+                } else {
+                    console.log(coord);
+                    throw new Error("Wrong coordinates format");
+                }
+            }
+
+            if (!btecoords[mcheight]) {
+                btecoords[mcheight] = [];
+            }
+
+            btecoords[mcheight].push(convertedLine);
+        }
+    }
+
+    return [btecoords,
+        [minX, maxX, minZ, maxZ, minElev, maxElev]];
+  }
 
   // Создание палитры
   function makePalette(blockId, fillSettings, foundationSettings) {
@@ -92,30 +123,14 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
     return [blockPalette, fillPaletteId, foundationPaletteId]
   }
 
-  function createSchematic(btecoords, blockId, offset, schemVersion, fillSettings, foundationSettings, largeConfirmation, previewEnabled) {
+  function createSchematic(bteconverted, blockId, offset, schemVersion, fillSettings, foundationSettings, largeConfirmation, previewEnabled) {
 
-    const allCoords = Object.entries(btecoords).flatMap(([elev, lines]) =>
-      (lines || []).flatMap(line => (line || []).map(([x, z]) => [x, z, Number(elev)]))
-    );
-
-    if (allCoords.length === 0) {
-      throw new Error("No coordinates in btecoords");
-    }
-
-    const xCoords = allCoords.map(([x]) => x);
-    const zCoords = allCoords.map(([_, z]) => z);
-    const yCoords = allCoords.map(([_, __, y]) => y);
-
-    const minX = xCoords.reduce((min, val) => Math.min(min, val), Infinity);
-    const maxX = xCoords.reduce((max, val) => Math.max(max, val), -Infinity);
-    const minZ = zCoords.reduce((min, val) => Math.min(min, val), Infinity);
-    const maxZ = zCoords.reduce((max, val) => Math.max(max, val), -Infinity);
-    const minY = yCoords.reduce((min, val) => Math.min(min, val), Infinity);
-    const maxY = yCoords.reduce((max, val) => Math.max(max, val), -Infinity);
+    const btecoords = bteconverted[0];
+    const [minX, maxX, minZ, maxZ, minElev, maxElev] = bteconverted[1];
 
     const length = maxX - minX + 1; // size X
     const width  = maxZ - minZ + 1; // size Z
-    let height = maxY - minY + 1; // size Y
+    let height = maxElev - minElev + 1; // size Y
 
     // Определение смещения всей схематики по толщине субстрата (foundationThickness)
     const makefoundation = foundationSettings[0];
@@ -168,9 +183,9 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
         for (let i = 0; i < line.length - 1; i++) {
           const [ax, az] = toGrid(line[i]);
           const [bx, bz] = toGrid(line[i + 1]);
-          const pts = bresenham2D(ax, az, bx, bz);
-          for (const [gx, gz] of pts) {
+          for (const [gx, gz] of bresenham2D(ax, az, bx, bz)) {
             if (gx < 0 || gz < 0 || gx >= length || gz >= width) continue;
+
             addEntry(grid[gz][gx], elev, 'contour');
           }
         }
@@ -187,10 +202,6 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
     // Заливка (если включено)
     if (fillPaletteId) fillTerrain(grid);
 
-    // Находим минимальную и максимальную высоту
-    let minElev = Infinity;
-    let maxElev = -Infinity;
-
     // Заполнение сетки блоками
     for (let gz = 0; gz < width; gz++) {
       for (let gx = 0; gx < length; gx++) {
@@ -199,7 +210,7 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
         if (!cell.type) continue;
 
         for (let i = 0; i < cell.elev.length; i++) { // Разбор каждого слоя Y на этой клетке в 2д сетке
-          const y = cell.elev[i] - minY + foundationOffset;
+          const y = cell.elev[i] - minElev + foundationOffset;
           if (y < 0 || y >= height) continue;
           const index = y * width * length + gz * length + gx;
           const val = (cell.type === 'contour') ? 1 : fillPaletteId;
@@ -209,15 +220,11 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
         // Подложка
         if (makefoundation) {
           for (let i = 0; i < foundationOffset; i++) {
-            const foundationLevel = Math.min(...cell.elev) - minY + i;
+            const foundationLevel = Math.min(...cell.elev) - minElev + i;
             const index = foundationLevel * width * length + gz * length + gx;
             blockData[index] = foundationPaletteId;
           }
         }
-
-        // Нахождение мин и макс высоты для будущей визуализации
-        minElev = Math.min(minElev, Math.min(...cell.elev));
-        maxElev = Math.max(maxElev, Math.max(...cell.elev));
       }
     }
     
@@ -229,7 +236,7 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
     // Сборка схемы
     const originPoint = [
       Math.ceil(minX) + offset[0], 
-      Math.ceil(minY) + offset[1] - foundationOffset, 
+      Math.ceil(minElev) + offset[1] - foundationOffset, 
       Math.ceil(minZ) + offset[2]
     ];
     const size = { length, height, width };
@@ -247,40 +254,37 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
 
   // Алгоритм Брезенхама
   // Возвращает массив точек, образующих прямой отрезок между 2 точками
-  function bresenham2D(x1,z1,x2,z2) {
+  function* bresenham2D(x1, z1, x2, z2) {
+    let x = x1;
+    let z = z1;
 
-      const points = [];
+    const dx = Math.abs(x2 - x1);
+    const dz = Math.abs(z2 - z1);
 
-      let x = x1;
-      let z = z1;
+    const sx = x1 < x2 ? 1 : -1;
+    const sz = z1 < z2 ? 1 : -1;
 
-      const dx = Math.abs(x2 - x1);
-      const dz = Math.abs(z2 - z1);
+    let err = dx - dz;
 
-      const sx = x1 < x2 ? 1 : -1;
-      const sz = z1 < z2 ? 1 : -1;
+    while (true) {
+      yield [x, z];
 
-      let err = dx - dz;
-
-      while (true) {
-          points.push([x, z]);
-
-          if (x === x2 && z === z2) break;
-
-          const e2 = 2 * err;
-
-          if (e2 > -dz) {
-              err -= dz;
-              x += sx;
-          }
-
-          if (e2 < dx) {
-              err += dx;
-              z += sz;
-          }
+      if (x === x2 && z === z2) {
+        break;
       }
 
-      return points;
+      const e2 = 2 * err;
+
+      if (e2 > -dz) {
+        err -= dz;
+        x += sx;
+      }
+
+      if (e2 < dx) {
+        err += dx;
+        z += sz;
+      }
+    }
   }
 
   // This is where it all begins...
@@ -294,9 +298,9 @@ function convertGeoData(geolist, blockId, offset, schemVersion, consElev, fillSe
     if (interpolate) {
       geotoconvert = interpolateContours(geotext, 1)
     }
-    const contours = getBTECoords(geotoconvert, consElev);
+    const btecontours = getBTECoords(geotoconvert, consElev);
     const schematicResult = createSchematic(
-      contours, blockId, offset, schemVersion, fillSettings, foundationSettings, largeConfirmation, previewEnabled);
+      btecontours, blockId, offset, schemVersion, fillSettings, foundationSettings, largeConfirmation, previewEnabled);
     const schematic = schematicResult[0];
     originPoint = schematicResult[1];
     visualizationData = schematicResult[2];
