@@ -40,7 +40,7 @@
 
     "terrainsettings": "⛰️ Terrain settings",
     "conselevation": "Consider elevation",
-    "conselevation_tooltip": "Place objects at their expected height in the schematic based on their elevation value specified in the source file. Objects without an elevation will be placed at Y level 0.<hr>If unchecked, all objects will be on Y level 0. You can move them to another level using Y offset.",
+    "conselevation_tooltip": "Place objects at their expected height in the schematic based on their elevation value specified in the source file. Objects without an elevation will be placed at Y level 0.<hr>Keep in mind that the blocks are placed one level below the actual height so that when the player stands on them, the correct height is displayed in F3 - this is the BTE standard.<hr>If unchecked, all objects will be on Y level 0. You can move them to another level using Y offset.",
     "fillterrain": "Fill terrain",
     "fillterrain_tooltip": "Reacreate the terrain by filling the spaces between contour lines at corresponding elevations. This feature is for topographic maps only!<hr>Filling blocks are generated between all contour blocks along the X and Z axes. <span style=\"color: red\">Contours must have a vertical spacing of 0-1 meter and must not intersect. Failure to meet these conditions will break the infill.</span> There may be other generation inaccuracies that you can easily fix manually.",
     "fillingblockid": "Filling block ID:",
@@ -56,7 +56,7 @@
     "on": "ON",
     "off": "OFF",
     
-    "privacynotice": "Privacy notice: all files are processed by your local machine<br>and aren't uploaded to any server.",
+    "privacynotice": "Privacy notice: all files are processed by your local machine and aren't uploaded to any server.",
     "sourcecode": "Source code",
 
     "alert_error_wrongextension": "Only .kml and .geojson files are supported",
